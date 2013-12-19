@@ -6,14 +6,26 @@ from perelachaise.models import Tombe
 
 class TombeAdmin(admin.ModelAdmin):
     fieldsets = [
-        (None, {'fields': ['nom_court','id']}),
+        (None, {'fields': ['id','nom_osm']}),
         ('Position', {'fields': ['latitude','longitude']}),
+        (u'Détail', {'fields': ['prenom',
+                                'nom',
+                                'date_naissance',
+                                'date_deces',
+                                'activite',
+                                'resume',
+                                'url_wikipedia'
+                                ]}),
     ]
-    list_display = ('nom_court','id')
-    ordering = ('nom_court',)
-    search_fields = ('nom_court',)
-    readonly_fields = ('id','nom_court','latitude','longitude',)
+    list_display = ('nom_osm','activite','lien_wikipedia','id')
+    ordering = ('nom',)
+    search_fields = ('nom_osm',)
+    readonly_fields = ('id',)
     actions = None
+    
+    def lien_wikipedia(self, obj):
+        return '<a href="%s">%s</a>' % (obj.url_wikipedia, obj.url_wikipedia)
+    lien_wikipedia.allow_tags = True
 
 # Déclaration des objets pour l'interface administrateur
 admin.site.register(Tombe, TombeAdmin)

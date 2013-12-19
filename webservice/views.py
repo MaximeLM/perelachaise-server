@@ -1,7 +1,8 @@
 # -*- coding: utf8 -*-
 
 import json
-from json import encoder;
+import datetime
+from json import encoder
 
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
@@ -9,6 +10,14 @@ from django.views.decorators.http import require_http_methods
 from django.core import serializers
 
 from perelachaise.models import Tombe
+
+def toJsonString(obj):
+    if obj == None:
+        return ''
+    elif isinstance(obj,datetime.date):
+        return str(obj)
+    else:
+        return obj
 
 @require_http_methods(["GET"])
 def tombe(request):
@@ -20,10 +29,17 @@ def tombe(request):
     list = []
     for row in queryset:
         list.append({
-            'id': row.pk,
-            'nom_court': row.nom_court,
-            'latitude': row.latitude,
-            'longitude': row.longitude
+            'id': toJsonString(row.pk),
+            'nom_osm': toJsonString(row.nom_osm),
+            'latitude': toJsonString(row.latitude),
+            'longitude': toJsonString(row.longitude),
+            'nom': toJsonString(row.nom),
+            'prenom': toJsonString(row.prenom),
+            'date_naissance': toJsonString(row.date_naissance),
+            'date_deces': toJsonString(row.date_deces),
+            'activite': toJsonString(row.activite),
+            'resume': toJsonString(row.resume),
+            'url_wikipedia': toJsonString(row.url_wikipedia)
         })
     
     encoder.FLOAT_REPR = lambda o: format(o, '.6f')
