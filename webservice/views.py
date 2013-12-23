@@ -2,6 +2,7 @@
 
 import json
 import datetime
+import urllib
 from json import encoder
 
 from django.http import HttpResponse
@@ -19,6 +20,9 @@ def toJsonString(obj):
     else:
         return obj
 
+def encodeURL(obj):
+    return urllib.quote(obj.encode('utf-8'),':/')
+
 @require_http_methods(["GET"])
 def tombe(request):
     """
@@ -30,7 +34,6 @@ def tombe(request):
     for row in queryset:
         list.append({
             'id': toJsonString(row.pk),
-            'nom_osm': toJsonString(row.nom_osm),
             'latitude': toJsonString(row.latitude),
             'longitude': toJsonString(row.longitude),
             'nom': toJsonString(row.nom),
@@ -39,7 +42,7 @@ def tombe(request):
             'date_deces': toJsonString(row.date_deces),
             'activite': toJsonString(row.activite),
             'resume': toJsonString(row.resume),
-            'url_wikipedia': toJsonString(row.url_wikipedia)
+            'url_wikipedia': encodeURL(row.url_wikipedia)
         })
     
     encoder.FLOAT_REPR = lambda o: format(o, '.6f')

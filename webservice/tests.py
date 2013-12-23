@@ -113,10 +113,6 @@ class TombeTest(TestCase):
         self.assertTrue(tombe.has_key('id'))
         self.assertEqual(179, tombe['id'])
         
-        # Nom court
-        self.assertTrue(tombe.has_key('nom_osm'))
-        self.assertEqual(u'test1', tombe['nom_osm'])
-        
         # Latitude
         self.assertTrue(tombe.has_key('latitude'))
         self.assertEqual(0.0, tombe['latitude'])
@@ -158,7 +154,7 @@ class TombeTest(TestCase):
         Avec 2 tombes en base.
         """
         # Préparation des données
-        Tombe(pk=1, nom_osm=u'tété', latitude=-96, longitude=0.123456, nom=u'nom1', prenom=u'prénom1', date_naissance='1985-10-20', date_deces='1985-10-21', activite=u'activité1', resume=u'résumé1', url_wikipedia=u'http://test1.fr').save()
+        Tombe(pk=1, nom_osm=u'tété', latitude=-96, longitude=0.123456, nom=u'nom1', prenom=u'prénom1', date_naissance='1985-10-20', date_deces='1985-10-21', activite=u'activité1', resume=u'résumé1', url_wikipedia=u'http://testé1.fr').save()
         Tombe(pk=999, nom_osm=u'toto', latitude=96, longitude=3.123456, nom=u'nom2', prenom=u'', activite=u'', resume=u'', url_wikipedia=u'').save()
         
         # Requête de la liste des tombes
@@ -197,10 +193,6 @@ class TombeTest(TestCase):
             if tombe['id'] == 1:
                 # Cas de la tombe 1
                 tombe1 = True;
-        
-                # Nom court
-                self.assertTrue(tombe.has_key('nom_osm'))
-                self.assertEqual(u'tété', tombe['nom_osm'])
                 
                 # Latitude
                 self.assertTrue(tombe.has_key('latitude'))
@@ -236,15 +228,11 @@ class TombeTest(TestCase):
         
                 # URL wikipedia
                 self.assertTrue(tombe.has_key('url_wikipedia'))
-                self.assertEqual(u'http://test1.fr', tombe['url_wikipedia'])
+                self.assertEqual(u'http://test%C3%A91.fr', tombe['url_wikipedia'])
         
             elif tombe['id'] == 999:
                 # Cas de la tombe 2
                 tombe2 = True;
-                
-                # Nom court
-                self.assertTrue(tombe.has_key('nom_osm'))
-                self.assertEqual(u'toto', tombe['nom_osm'])
                 
                 # Latitude
                 self.assertTrue(tombe.has_key('latitude'))
