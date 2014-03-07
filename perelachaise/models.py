@@ -42,6 +42,11 @@ class NodeOSM(models.Model):
     
     def __unicode__(self):
         return self.nom
+    
+    # Méta-propriétés de la classe
+    class Meta:
+        # Nom verbeux au pluriel
+        verbose_name_plural = u'Nodes OSM'
 
 
 class Monument(models.Model):
@@ -77,6 +82,11 @@ class Monument(models.Model):
     # Résumé
     # Correspond en général à l'introduction de la page wikipedia
     resume = models.TextField(blank=True)
+    
+    # Noms verbeux
+    controle.verbose_name = u'contrôle'
+    prenom.verbose_name = u'prénom'
+    resume.verbose_name = u'résumé'
     
     def __unicode__(self):
         if not self.prenom:
@@ -121,5 +131,17 @@ class Personnalite(models.Model):
     # Correspond en général à l'introduction de la page wikipedia
     resume = models.TextField(blank=True)
     
+    # Noms verbeux
+    date_naissance.verbose_name = u'date de naissance'
+    date_deces.verbose_name = u'date de décès'
+    activite.verbose_name = u'activité'
+    resume.verbose_name = u'résumé'
+    
     def __unicode__(self):
-        return self.prenom + ' ' + self.nom
+        return self.nom
+    
+    # Méta-propriétés de la classe
+    class Meta:
+        # Nom verbeux
+        verbose_name = u'Personnalité'
+
