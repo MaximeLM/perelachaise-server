@@ -47,6 +47,9 @@ class NodeOSM(models.Model):
     class Meta:
         # Nom verbeux au pluriel
         verbose_name_plural = u'Nodes OSM'
+        
+        # Règle de tri par défaut
+        ordering = ('nom','id',)
 
 
 class Monument(models.Model):
@@ -77,7 +80,7 @@ class Monument(models.Model):
     prenom = models.CharField(max_length=255, blank=True)
     
     # Nom
-    nom = models.CharField(max_length=255, blank=True)
+    nom = models.CharField(max_length=255)
     
     # Résumé
     # Correspond en général à l'introduction de la page wikipedia

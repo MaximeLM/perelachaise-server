@@ -16,7 +16,8 @@ class NodeOSMAdmin(admin.ModelAdmin):
     
     # Liste des champs affichés
     list_display = ('nom','id',
-                    'latitude','longitude')
+                    'latitude','longitude',
+                    'nombre_monuments')
     
     # Règle de tri par défaut
     ordering = ('nom','id',)
@@ -36,6 +37,27 @@ class NodeOSMAdmin(admin.ModelAdmin):
         (None, {'fields': ['id','nom']}),
         (u'Position', {'fields': ['latitude','longitude']}),
     ]
+    
+    # ====================
+    # Méthodes d'affichage
+    # ====================
+    
+    def nombre_monuments(self, obj):
+        ''' Affiche le nombre de monuments liés au node OSM'''
+        return obj.monument_set.count()
+    
+    # Nom verbeux
+    nombre_monuments.short_description = u'nombre de monuments'
+    
+    # Règle de tri
+    nombre_monuments.admin_order_field = 'monument__count'
+    
+    def queryset(self, request):
+        """ Surcharge permettant le tri de la liste
+        par des règles calculées """
+        qs = super(NodeOSMAdmin, self).queryset(request)
+        qs = qs.annotate(models.Count('monument'))
+        return qs
 
 
 class PersonnaliteInline(admin.StackedInline):
@@ -184,7 +206,7 @@ class MonumentAdmin(admin.ModelAdmin):
             if personnalite.code_wikidata:
                 return '<a href="http://www.wikidata.org/wiki/%s?uselang=fr">http://www.wikidata.org/wiki/%s?uselang=fr</a>' % (personnalite.code_wikidata, personnalite.code_wikidata)
             else:
-                return None
+                return ''
         else:
             # Affichage du lien du monument
             if obj.code_wikidata:
@@ -263,7 +285,7 @@ class MonumentAdmin(admin.ModelAdmin):
     nombre_personnalites.short_description = u'nombre de personnalités'
     
     # Règle de tri
-    nombre_personnalites.admin_order_field = '-personnalite__count'
+    nombre_personnalites.admin_order_field = 'personnalite__count'
     
     def id_osm(self, obj):
         ''' Affiche l'id du node OSM lié '''
