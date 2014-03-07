@@ -21,9 +21,10 @@ class Tombe(models.Model):
     def __unicode__(self):
         return self.nom_osm
 
+
 class NodeOSM(models.Model):
     """
-    Représente un noeud OSM correspondant à une tombe.
+    Représente un noeud OSM.
     """
     
     # Identifiant unique OSM <id> utilisé comme clé primaire
@@ -39,30 +40,21 @@ class NodeOSM(models.Model):
     # Latitude du point <lon>
     longitude = models.DecimalField(max_digits=10, decimal_places=7)
     
-    # ==========
-    # Timestamps
-    # ==========
-    
-    # Date de création
-    # Mis à jour à la création de l'objet
-    date_creation = models.DateTimeField(auto_now_add=True)
-    
-    # Date de modification
-    # Mis à jour à la sauvegarde de l'objet
-    date_modification = models.DateTimeField(auto_now=True)
-    
     def __unicode__(self):
         return self.nom
 
-class DetailTombe(models.Model):
+
+class Monument(models.Model):
     """
-    Définit une personne ou un monument relatif à un noeud OSM.
+    Représente un monument, généralement une tombe, relatif à un noeud OSM.
+    Il peut aussi s'agir d'un monument sans personne associée,
+    comme le mur des fédérés.
     """
     
-    # Noeud OSM auquel se rattache le détail
-    node_osm = models.ForeignKey('NodeOSM')
+    # Noeud OSM auquel se rattache le monument
+    node_osm = models.ForeignKey('NodeOSM',unique=True)
     
-    # Flag indiquant si l'objet a été validé pour publication
+    # Flag indiquant si le monument a été validé pour publication
     controle = models.BooleanField(default=False)
     
     # =================
@@ -76,7 +68,42 @@ class DetailTombe(models.Model):
     url_wikipedia = models.URLField(blank=True)
     
     # Prénom
+    # Utilisé pour permettre le tri alphabétique par nom
     prenom = models.CharField(max_length=255, blank=True)
+    
+    # Nom
+    nom = models.CharField(max_length=255, blank=True)
+    
+    # Résumé
+    # Correspond en général à l'introduction de la page wikipedia
+    resume = models.TextField(blank=True)
+    
+    def __unicode__(self):
+        if not self.prenom:
+            # Pas de prénom : affichage du nom seul
+            return self.nom
+        else:
+            # Prénom présent : affichage concaténé
+            return self.prenom + ' ' + self.nom
+
+
+class Personnalite(models.Model):
+    """
+    Représente une personnalité enterrée dans une tombe.
+    """
+    
+    # Tombe où est enterrée la personnalité
+    tombe = models.ForeignKey('Monument')
+    
+    # =================
+    # Champs optionnels
+    # =================
+    
+    # Code wikidata, par exemple 'Q123456'
+    code_wikidata = models.CharField(max_length=20, blank=True)
+    
+    # URL de la page wikipedia
+    url_wikipedia = models.URLField(blank=True)
     
     # Nom
     nom = models.CharField(max_length=255)
@@ -94,22 +121,5 @@ class DetailTombe(models.Model):
     # Correspond en général à l'introduction de la page wikipedia
     resume = models.TextField(blank=True)
     
-    # ==========
-    # Timestamps
-    # ==========
-    
-    # Date de création
-    # Mis à jour à la création de l'objet
-    date_creation = models.DateTimeField(auto_now_add=True)
-    
-    # Date de modification
-    # Mis à jour à la sauvegarde de l'objet
-    date_modification = models.DateTimeField(auto_now=True)
-    
     def __unicode__(self):
-        if not self.prenom:
-            # Pas de prénom : affichage du nom seul
-            return self.nom
-        else:
-            # Prénom présent : affichage concaténé
-            return self.prenom + ' ' + self.nom
+        return self.prenom + ' ' + self.nom
