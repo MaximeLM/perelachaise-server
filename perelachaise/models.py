@@ -75,12 +75,11 @@ class Monument(models.Model):
     # URL de la page wikipedia
     url_wikipedia = models.URLField(blank=True)
     
-    # Prénom
-    # Utilisé pour permettre le tri alphabétique par nom
-    prenom = models.CharField(max_length=255, blank=True)
-    
-    # Nom
+    # Nom complet (ex: Jim Morrison)
     nom = models.CharField(max_length=255)
+    
+    # Nom pour tri alphabétique (ex: Morrison)
+    nom_pour_tri = models.CharField(max_length=255)
     
     # Résumé
     # Correspond en général à l'introduction de la page wikipedia
@@ -88,16 +87,10 @@ class Monument(models.Model):
     
     # Noms verbeux
     controle.verbose_name = u'contrôle'
-    prenom.verbose_name = u'prénom'
     resume.verbose_name = u'résumé'
     
     def __unicode__(self):
-        if not self.prenom:
-            # Pas de prénom : affichage du nom seul
-            return self.nom
-        else:
-            # Prénom présent : affichage concaténé
-            return self.prenom + ' ' + self.nom
+        return self.nom
 
 
 class Personnalite(models.Model):

@@ -138,10 +138,10 @@ class MonumentAdmin(admin.ModelAdmin):
                     'nombre_personnalites')
     
     # Règle de tri par défaut
-    ordering = ('nom',)
+    ordering = ('nom_pour_tri','nom',)
     
     # Liste des champs recherchables
-    search_fields = ('nom','prenom')
+    search_fields = ('nom',)
     
     # Actions administrateur disponibles
     actions=None
@@ -159,7 +159,7 @@ class MonumentAdmin(admin.ModelAdmin):
                                   'latitude',
                                   'longitude'
                                   ]}),
-        (u'Monument', {'fields': ['prenom','nom',
+        (u'Monument', {'fields': ['nom','nom_pour_tri',
                                 'code_wikidata',
                                 'lien_wikidata',
                                 'url_wikipedia',
