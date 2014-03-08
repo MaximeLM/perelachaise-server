@@ -29,7 +29,7 @@ class NodeOSM(models.Model):
     
     # Identifiant unique OSM <id> utilisé comme clé primaire
     # Surchargé pour ne pas générer de séquence
-    id = models.IntegerField(primary_key=True)
+    id = models.BigIntegerField(primary_key=True)
     
     # Nom du node OSM <name>
     nom = models.CharField(max_length=255)
@@ -39,6 +39,12 @@ class NodeOSM(models.Model):
     
     # Latitude du point <lon>
     longitude = models.DecimalField(max_digits=10, decimal_places=7)
+    
+    # Timestamp <timestamp>
+    timestamp = models.DateTimeField()
+    
+    # Utilisateur <user>
+    utilisateur = models.CharField(max_length=255)
     
     def __unicode__(self):
         return self.nom

@@ -17,7 +17,8 @@ class NodeOSMAdmin(admin.ModelAdmin):
     # Liste des champs affichés
     list_display = ('nom','id',
                     'latitude','longitude',
-                    'nombre_monuments')
+                    'nombre_monuments',
+                    'utilisateur','timestamp')
     
     # Règle de tri par défaut
     ordering = ('nom','id',)
@@ -36,6 +37,7 @@ class NodeOSMAdmin(admin.ModelAdmin):
     fieldsets = [
         (None, {'fields': ['id','nom']}),
         (u'Position', {'fields': ['latitude','longitude']}),
+        (u'Modification', {'fields': ['utilisateur','timestamp']}),
     ]
     
     # ====================
