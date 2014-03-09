@@ -78,8 +78,8 @@ class Monument(models.Model):
     # Code wikidata, par exemple 'Q123456'
     code_wikidata = models.CharField(max_length=20, blank=True)
     
-    # URL de la page wikipedia
-    url_wikipedia = models.URLField(blank=True)
+    # Code de la page wikipedia
+    code_wikipedia = models.CharField(max_length=255, blank=True)
     
     # Nom complet (ex: Jim Morrison)
     nom = models.CharField(max_length=255)
@@ -94,6 +94,11 @@ class Monument(models.Model):
     # Noms verbeux
     controle.verbose_name = u'contrôle'
     resume.verbose_name = u'résumé'
+    
+    def save(self, *args, **kwargs):
+        """ Surchargé pour supprimer les \r du champ résumé ajoutés par l'interface admin """
+        self.resume = self.resume.replace('\r','')
+        super(Monument, self).save(*args, **kwargs)
     
     def __unicode__(self):
         return self.nom
@@ -114,8 +119,8 @@ class Personnalite(models.Model):
     # Code wikidata, par exemple 'Q123456'
     code_wikidata = models.CharField(max_length=20, blank=True)
     
-    # URL de la page wikipedia
-    url_wikipedia = models.URLField(blank=True)
+    # Code de la page wikipedia
+    code_wikipedia = models.CharField(max_length=255, blank=True)
     
     # Nom
     nom = models.CharField(max_length=255)
@@ -141,6 +146,11 @@ class Personnalite(models.Model):
     
     def __unicode__(self):
         return self.nom
+    
+    def save(self, *args, **kwargs):
+        """ Surchargé pour supprimer les \r du champ résumé ajoutés par l'interface admin """
+        self.resume = self.resume.replace('\r','')
+        super(Personnalite, self).save(*args, **kwargs)
     
     # Méta-propriétés de la classe
     class Meta:
