@@ -133,7 +133,7 @@ class PersonnaliteInline(admin.StackedInline):
     
     def resume_formatted(self, obj):
         """ Affiche le résumé au format HTML en complétant les liens internes wikipedia """
-        resume = obj.resume.replace('<a href="/wiki/','<a href="http://fr.wikipedia.org/wiki/')
+        resume = obj.resume.replace('<a href="/wiki/','<a href="http://fr.wikipedia.org/wiki/').replace('\n','')
         return resume
     
     # Autorisation du lien HTTP
@@ -159,7 +159,7 @@ class MonumentAdmin(admin.ModelAdmin):
                     'nombre_personnalites')
     
     # Règle de tri par défaut
-    ordering = ('nom_pour_tri','nom',)
+    ordering = ('controle','nom_pour_tri','nom',)
     
     # Liste des champs recherchables
     search_fields = ('nom',)
@@ -342,7 +342,7 @@ class MonumentAdmin(admin.ModelAdmin):
     
     def resume_formatted(self, obj):
         """ Affiche le résumé au format HTML en complétant les liens internes wikipedia """
-        resume = obj.resume.replace('<a href="/wiki/','<a href="http://fr.wikipedia.org/wiki/')
+        resume = obj.resume.replace('<a href="/wiki/','<a href="http://fr.wikipedia.org/wiki/').replace('\n','')
         return resume
     
     # Autorisation du lien HTTP
