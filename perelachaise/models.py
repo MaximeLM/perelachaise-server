@@ -109,6 +109,17 @@ class Personnalite(models.Model):
     Représente une personnalité enterrée dans une tombe.
     """
     
+    # Constantes
+    ANNEE = 'A'
+    MOIS = 'M'
+    JOUR = 'J'
+    
+    PRECISION_CHOICES = (
+            (ANNEE, u'Année'),
+            (MOIS, u'Mois'),
+            (JOUR, u'Jour'),
+        )
+    
     # Tombe où est enterrée la personnalité
     tombe = models.ForeignKey('Monument')
     
@@ -128,8 +139,14 @@ class Personnalite(models.Model):
     # Date de naissance
     date_naissance = models.DateField(blank=True, null=True)
     
+    # Précision de la date de naissance
+    date_naissance_precision = models.CharField(max_length=1,default=JOUR,choices=PRECISION_CHOICES)
+    
     # Date de décès
     date_deces = models.DateField(blank=True, null=True)
+    
+    # Précision de la date de décès
+    date_deces_precision = models.CharField(max_length=1,default=JOUR,choices=PRECISION_CHOICES)
     
     # Activité
     activite = models.CharField(max_length=255, blank=True)
@@ -141,6 +158,8 @@ class Personnalite(models.Model):
     # Noms verbeux
     date_naissance.verbose_name = u'date de naissance'
     date_deces.verbose_name = u'date de décès'
+    date_naissance_precision.verbose_name = u'précision date de naissance'
+    date_deces_precision.verbose_name = u'précision date de décès'
     activite.verbose_name = u'activité'
     resume.verbose_name = u'résumé'
     
@@ -156,4 +175,3 @@ class Personnalite(models.Model):
     class Meta:
         # Nom verbeux
         verbose_name = u'Personnalité'
-

@@ -79,13 +79,15 @@ class PersonnaliteInline(admin.StackedInline):
     
     # Liste des champs affichés
     fieldsets = [
-        (None, {'fields': ['nom',
+        (None, {'fields': ['nom','id',
                            'code_wikidata',
                            'lien_wikidata',
                            'code_wikipedia',
                            'lien_wikipedia',
                            'date_naissance',
+                           'date_naissance_precision',
                            'date_deces',
+                           'date_deces_precision',
                            'activite',
                            'resume',
                            'resume_formatted',
@@ -93,7 +95,7 @@ class PersonnaliteInline(admin.StackedInline):
     ]
     
     # Champs en lecture seule
-    readonly_fields = ('lien_tombe','lien_wikidata','lien_wikipedia','resume_formatted',)
+    readonly_fields = ('id','lien_tombe','lien_wikidata','lien_wikipedia','resume_formatted',)
     
     # ====================
     # Méthodes d'affichage
@@ -178,7 +180,7 @@ class MonumentAdmin(admin.ModelAdmin):
                                   'latitude',
                                   'longitude'
                                   ]}),
-        (u'Monument', {'fields': ['nom','nom_pour_tri',
+        (u'Monument', {'fields': ['id','nom','nom_pour_tri',
                                 'code_wikidata',
                                 'lien_wikidata',
                                 'code_wikipedia',
@@ -189,7 +191,7 @@ class MonumentAdmin(admin.ModelAdmin):
     ]
     
     # Champs en lecture seule
-    readonly_fields = ('lien_wikidata', 'lien_wikipedia','resume_formatted',
+    readonly_fields = ('id','lien_wikidata', 'lien_wikipedia','resume_formatted',
                         'id_osm','latitude','longitude','lien_node_osm_detail')
     
     # Affichage des personnalités liées
@@ -301,8 +303,11 @@ class MonumentAdmin(admin.ModelAdmin):
         """ Affiche le nom complet de l'objet """
         return unicode(obj)
     
+    # Nom verbeux
+    nom_complet.short_description = u'nom'
+    
     # Règle de tri
-    nom_complet.admin_order_field = 'nom'
+    nom_complet.admin_order_field = 'nom_pour_tri'
     
     def nombre_personnalites(self, obj):
         """ Affiche le nombre de personnalités liées au monument"""
