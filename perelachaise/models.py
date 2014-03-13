@@ -106,7 +106,7 @@ class Monument(models.Model):
 
 class Personnalite(models.Model):
     """
-    Représente une personnalité enterrée dans une tombe.
+    Représente une personnalité enterrée dans un monument.
     """
     
     # Constantes
@@ -120,8 +120,8 @@ class Personnalite(models.Model):
             (JOUR, u'Jour'),
         )
     
-    # Tombe où est enterrée la personnalité
-    tombe = models.ForeignKey('Monument')
+    # Monument où est enterrée la personnalité
+    monument = models.ForeignKey('Monument')
     
     # =================
     # Champs optionnels

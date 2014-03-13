@@ -95,7 +95,7 @@ class PersonnaliteInline(admin.StackedInline):
     ]
     
     # Champs en lecture seule
-    readonly_fields = ('id','lien_tombe','lien_wikidata','lien_wikipedia','resume_formatted',)
+    readonly_fields = ('id','lien_wikidata','lien_wikipedia','resume_formatted',)
     
     # ====================
     # Méthodes d'affichage
@@ -119,13 +119,6 @@ class PersonnaliteInline(admin.StackedInline):
             return ''
     
     lien_wikipedia.allow_tags = True
-    
-    def lien_tombe(self, obj):
-        """ Affiche un lien vers la page d'administration
-        de la tombe associée """
-        return '<a href="../../monument/%d">%s</a>' % (obj.tombe.id,unicode(obj.tombe))
-    
-    lien_tombe.allow_tags = True
     
     def nom_complet(self, obj):
         """ Affiche le nom complet de l'objet """
@@ -155,6 +148,7 @@ class MonumentAdmin(admin.ModelAdmin):
     # Liste des champs affichés
     list_display = ('nom_complet','controle',
                     'lien_node_osm_liste',
+                    'activite',
                     'wikidata','wikipedia',
                     'nombre_personnalites')
     
@@ -229,7 +223,7 @@ class MonumentAdmin(admin.ModelAdmin):
         if obj.personnalite_set.count() == 1:
             # Si exactement 1 personnalité est liée à ce monument :
             # affichage du lien de la personnalité
-            personnalite = Personnalite.objects.get(tombe=obj.id)
+            personnalite = Personnalite.objects.get(monument=obj.id)
             if personnalite.code_wikidata:
                 return '<a href="http://www.wikidata.org/wiki/%s?uselang=fr">http://www.wikidata.org/wiki/%s?uselang=fr</a>' % (personnalite.code_wikidata, personnalite.code_wikidata)
             else:
@@ -252,7 +246,7 @@ class MonumentAdmin(admin.ModelAdmin):
         if obj.personnalite_set.count() == 1:
             # Si exactement 1 personnalité est liée à ce monument :
             # affichage du lien de la personnalité
-            personnalite = Personnalite.objects.get(tombe=obj.id)
+            personnalite = Personnalite.objects.get(monument=obj.id)
             if personnalite.code_wikipedia:
                 url_wikipedia = 'http://fr.wikipedia.org/wiki/' + personnalite.code_wikipedia.encode('utf8')
                 return '<a href="%s">%s</a>' % (url_wikipedia, url_wikipedia)
@@ -271,6 +265,15 @@ class MonumentAdmin(admin.ModelAdmin):
     
     # Nom verbeux
     wikipedia.short_description = u'lien Wikipedia'
+    
+    def activite(self, obj):
+        """ Affiche l'activité de la personnalité associée si elle est unique"""
+        if obj.personnalite_set.count() == 1:
+            # Si exactement 1 personnalité est liée à ce monument :
+            personnalite = Personnalite.objects.get(monument=obj.id)
+            return personnalite.activite
+        else:
+            return ''
     
     def lien_node_osm_liste(self, obj):
         """ Affiche un lien vers la page d'administration
