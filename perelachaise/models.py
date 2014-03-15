@@ -3,25 +3,6 @@
 
 from django.db import models
 
-class Tombe(models.Model):
-    """
-    Définit une tombe
-    """
-    nom_osm = models.CharField(max_length=255)
-    latitude = models.FloatField()
-    longitude = models.FloatField()
-    prenom = models.CharField(max_length=255, blank=True)
-    nom = models.CharField(max_length=255)
-    date_naissance = models.DateField(blank=True, null=True)
-    date_deces = models.DateField(blank=True, null=True)
-    activite = models.CharField(max_length=255, blank=True)
-    resume = models.TextField(blank=True)
-    url_wikipedia = models.URLField(blank=True)
-    
-    def __unicode__(self):
-        return self.nom_osm
-
-
 class NodeOSM(models.Model):
     """
     Représente un noeud OSM.
@@ -71,10 +52,6 @@ class Monument(models.Model):
     # Flag indiquant si le monument a été validé pour publication
     controle = models.BooleanField(default=False)
     
-    # =================
-    # Champs optionnels
-    # =================
-    
     # Code wikidata, par exemple 'Q123456'
     code_wikidata = models.CharField(max_length=20, blank=True)
     
@@ -122,10 +99,6 @@ class Personnalite(models.Model):
     
     # Monument où est enterrée la personnalité
     monument = models.ForeignKey('Monument')
-    
-    # =================
-    # Champs optionnels
-    # =================
     
     # Code wikidata, par exemple 'Q123456'
     code_wikidata = models.CharField(max_length=20, blank=True)

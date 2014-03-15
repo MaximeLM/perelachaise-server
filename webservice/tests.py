@@ -2,23 +2,170 @@
 # encoding: utf-8
 
 import json
+import time, datetime
+from decimal import Decimal
 
 from django.test import TestCase
 from django.test.client import Client
 
-from perelachaise.models import Tombe
+from perelachaise.models import NodeOSM, Monument, Personnalite
 
-class TombeTest(TestCase):
+class MonumentAllTest(TestCase):
     """
-    Tests de la vue tombe/
+    Tests de la vue monument/all/
     """
+    
+    # Fixture
+    fixtures = ['perelachaise.json']
+    
+    def util_list_to_dict_result(self, monuments):
+        """ Transforme une liste de monuments renvoyée par la requête en dictionnaire indexé sur le nom """
+        
+        # Préparation du résultat
+        result = {}
+        
+        # Parcours des monuments
+        for monument in monuments:
+            # Récupération du nom
+            nom = monument['nom']
+            
+            # Parcours des personnalités
+            personnalites = {}
+            for personnalite in monument['personnalites']:
+                # Récupération du nom
+                nom_personnalite = personnalite['nom']
+                
+                # Ajout au dictionnaire
+                personnalites[nom_personnalite] = personnalite
+            
+            monument['personnalites'] = personnalites
+            
+            # Ajout au dictonnaire
+            result[nom] = monument
+        
+        return result
+    
+    def assert_monument_equal(self, monument_json, monument_ref):
+        """ Vérifie qu'un monument obtenu par requête est égal à un monument en base """
+        
+        # Vérification des champs du monument
+        self.assertTrue(isinstance(monument_json, dict))
+        
+        # Id monument
+        self.assertTrue(monument_json.has_key('id'))
+        self.assertEqual(monument_ref.id, monument_json['id'])
+        
+        # Nom monument
+        self.assertTrue(monument_json.has_key('nom'))
+        self.assertEqual(monument_ref.nom, monument_json['nom'])
+        
+        # Nom pour tri monument
+        self.assertTrue(monument_json.has_key('nom_pour_tri'))
+        self.assertEqual(monument_ref.nom_pour_tri, monument_json['nom_pour_tri'])
+        
+        # Code wikipedia monument
+        self.assertTrue(monument_json.has_key('code_wikipedia'))
+        self.assertEqual(monument_ref.code_wikipedia, monument_json['code_wikipedia'])
+        
+        # Résumé monument
+        self.assertTrue(monument_json.has_key('resume'))
+        self.assertEqual(monument_ref.resume, monument_json['resume'])
+        
+        # Vérification des champs du node OSM
+        self.assertTrue(monument_json.has_key('node_osm'))
+        node_osm_json = monument_json['node_osm']
+        node_osm_ref = monument_ref.node_osm
+        self.assertTrue(isinstance(node_osm_json, dict))
+        
+        # Id node OSM
+        self.assertTrue(node_osm_json.has_key('id'))
+        self.assertEqual(node_osm_ref.id, node_osm_json['id'])
+        
+        # Latitude node OSM
+        self.assertTrue(node_osm_json.has_key('latitude'))
+        self.assertEqual(node_osm_ref.latitude, Decimal(node_osm_json['latitude']))
+        
+        # Longitude node OSM
+        self.assertTrue(node_osm_json.has_key('longitude'))
+        self.assertEqual(node_osm_ref.longitude, Decimal(node_osm_json['longitude']))
+        
+        # Vérification des champs du node OSM
+        self.assertTrue(monument_json.has_key('personnalites'))
+        personnalites_json = monument_json['personnalites']
+        
+        # Parcours des personnalites
+        for personnalite_ref in monument_ref.personnalite_set.all():
+            
+            # Vérification de la présence de la personnalité
+            self.assertTrue(personnalites_json.has_key(personnalite_ref.nom))
+            personnalite_json = personnalites_json[personnalite_ref.nom]
+            
+            # Vérification des champs de la personnalité
+            self.assertTrue(isinstance(personnalite_json, dict))
+        
+            # Id personnalité
+            self.assertTrue(personnalite_json.has_key('id'))
+            self.assertEqual(personnalite_ref.id, personnalite_json['id'])
+            
+            # Nom personnalité
+            self.assertTrue(personnalite_json.has_key('nom'))
+            self.assertEqual(personnalite_ref.nom, personnalite_json['nom'])
+            
+            # Code wikipedia personnalité
+            self.assertTrue(personnalite_json.has_key('code_wikipedia'))
+            self.assertEqual(personnalite_ref.code_wikipedia, personnalite_json['code_wikipedia'])
+            
+            # Activité personnalité
+            self.assertTrue(personnalite_json.has_key('activite'))
+            self.assertEqual(personnalite_ref.activite, personnalite_json['activite'])
+            
+            # Résumé personnalité
+            self.assertTrue(personnalite_json.has_key('resume'))
+            self.assertEqual(personnalite_ref.resume, personnalite_json['resume'])
+            
+            # Date de naissance personnalité
+            self.assertTrue(personnalite_json.has_key('date_naissance'))
+            if personnalite_json['date_naissance'] != '':
+                date_json = datetime.date(*time.strptime(personnalite_json['date_naissance'], "%Y-%m-%d")[:3])
+            else:
+                date_json = None
+            self.assertEqual(personnalite_ref.date_naissance, date_json)
+            
+            # Précision date de naissance personnalité
+            self.assertTrue(personnalite_json.has_key('date_naissance_precision'))
+            self.assertEqual(personnalite_ref.date_naissance_precision, personnalite_json['date_naissance_precision'])
+            
+            # Date de décès personnalité
+            self.assertTrue(personnalite_json.has_key('date_deces'))
+            if personnalite_json['date_deces'] != '':
+                date_json = datetime.date(*time.strptime(personnalite_json['date_deces'], "%Y-%m-%d")[:3])
+            else:
+                date_json = None
+            self.assertEqual(personnalite_ref.date_deces, date_json)
+            
+            # Précision date de décès personnalité
+            self.assertTrue(personnalite_json.has_key('date_deces_precision'))
+            self.assertEqual(personnalite_ref.date_deces_precision, personnalite_json['date_deces_precision'])
+    
+    def test_get(self):
+		"""
+		Une requête au moyen de la méthode HTTP GET doit renvoyer un statut 'OK' (HTTP 200).
+		"""
+		# Requête avec GET
+		response = self.client.get('/webservice/monument/all/')
+		
+		# Vérification du statut HTTP
+		self.assertEqual(200, response.status_code)
+        
+		# Vérification du contenu de la réponse
+		self.assertNotEqual('', response.content)
     
     def test_post(self):
 		"""
-		Une connexion au moyen de la méthode HTTP POST doit renvoyer un statut 'Method Not Allowed' (HTTP 405).
+		Une requête au moyen de la méthode HTTP POST doit renvoyer un statut 'Method Not Allowed' (HTTP 405).
 		"""
 		# Requête avec POST
-		response = self.client.post('/webservice/tombe/')
+		response = self.client.post('/webservice/monument/all/')
 		
 		# Vérification du statut HTTP
 		self.assertEqual(405, response.status_code)
@@ -28,10 +175,10 @@ class TombeTest(TestCase):
     
     def test_put(self):
 		"""
-		Une connexion au moyen de la méthode HTTP PUT doit renvoyer un statut 'Method Not Allowed' (HTTP 405).
+		Une requête au moyen de la méthode HTTP PUT doit renvoyer un statut 'Method Not Allowed' (HTTP 405).
 		"""
 		# Requête avec PUT
-		response = self.client.put('/webservice/tombe/')
+		response = self.client.post('/webservice/monument/all/')
 		
 		# Vérification du statut HTTP
 		self.assertEqual(405, response.status_code)
@@ -41,10 +188,10 @@ class TombeTest(TestCase):
     
     def test_delete(self):
 		"""
-		Une connexion au moyen de la méthode HTTP DELETE doit renvoyer un statut 'Method Not Allowed' (HTTP 405).
+		Une requête au moyen de la méthode HTTP DELETE doit renvoyer un statut 'Method Not Allowed' (HTTP 405).
 		"""
 		# Requête de login avec DELETE
-		response = self.client.delete('/webservice/tombe/')
+		response = self.client.post('/webservice/monument/all/')
 		
 		# Vérification du statut HTTP
 		self.assertEqual(405, response.status_code)
@@ -54,10 +201,13 @@ class TombeTest(TestCase):
     
     def test_nodata(self):
         """
-        Avec aucune tombe en base, le retour doit être vide.
+        Requête sans aucun monument présent en base
         """
-        # Requête de la liste des tombes
-        response = self.client.get('/webservice/tombe/')
+        # Suppression des monuments
+        Monument.objects.all().delete()
+        
+        # Requête avec GET
+        response = self.client.get('/webservice/monument/all/')
         
         # Vérification du statut HTTP
         self.assertEqual(200, response.status_code)
@@ -69,23 +219,24 @@ class TombeTest(TestCase):
         jsonObject = json.loads(response.content)
         self.assertTrue(isinstance(jsonObject, dict))
         
-        # Vérification de la présence de la liste de tombes
-        self.assertTrue(jsonObject.has_key('tombes'))
-        tombes = jsonObject['tombes'];
-        self.assertTrue(isinstance(tombes, list))
+        # Vérification de la présence de la liste de monuments
+        self.assertTrue(jsonObject.has_key('monuments'))
+        monuments = jsonObject['monuments'];
+        self.assertTrue(isinstance(monuments, list))
         
         # Vérification du nombre d'objets reçus
-        self.assertEqual(0, len(tombes))
+        self.assertEqual(0, len(monuments))
     
-    def test_1object(self):
+    def test_1_personnalite(self):
         """
-        Avec 1 tombe en base.
+        Teste un monument auquel est associée une personnalité.
         """
-        # Préparation des données
-        Tombe(pk=179, nom_osm=u'test1', latitude=0.0, longitude=1.0, nom=u'nom1', prenom=u'prénom1', date_naissance='1985-10-20', date_deces='1985-10-21', activite=u'activité1', resume=u'résumé1', url_wikipedia=u'http://test1.fr').save()
         
-        # Requête de la liste des tombes
-        response = self.client.get('/webservice/tombe/')
+        monument_ref = Monument.objects.get(nom = u'Jim Morrison')
+        self.assertEqual(1, monument_ref.personnalite_set.count())
+        
+        # Requête avec GET
+        response = self.client.get('/webservice/monument/all/')
         
         # Vérification du statut HTTP
         self.assertEqual(200, response.status_code)
@@ -97,68 +248,31 @@ class TombeTest(TestCase):
         jsonObject = json.loads(response.content)
         self.assertTrue(isinstance(jsonObject, dict))
         
-        # Vérification de la présence de la liste de tombes
-        self.assertTrue(jsonObject.has_key('tombes'))
-        tombes = jsonObject['tombes'];
-        self.assertTrue(isinstance(tombes, list))
+        # Vérification de la présence de la liste de monuments
+        self.assertTrue(jsonObject.has_key('monuments'))
+        monuments = jsonObject['monuments'];
+        self.assertTrue(isinstance(monuments, list))
         
-        # Vérification du nombre d'objets reçus
-        self.assertEqual(1, len(tombes))
+        # Récupération du dictionnaire des monuments
+        dict_monuments = self.util_list_to_dict_result(monuments)
         
-        # Récupération de l'objet tombe
-        tombe = tombes[0];
-        self.assertTrue(isinstance(tombe, dict))
+        # Vérification de la présence du monument de référence
+        self.assertTrue(dict_monuments.has_key(monument_ref.nom))
+        monument_json = dict_monuments[monument_ref.nom]
         
-        # Vérification de la présence de l'identifiant
-        self.assertTrue(tombe.has_key('id'))
-        self.assertEqual(179, tombe['id'])
-        
-        # Latitude
-        self.assertTrue(tombe.has_key('latitude'))
-        self.assertEqual(0.0, tombe['latitude'])
-        
-        # Longitude
-        self.assertTrue(tombe.has_key('longitude'))
-        self.assertEqual(1.0, tombe['longitude'])
-        
-        # Nom
-        self.assertTrue(tombe.has_key('nom'))
-        self.assertEqual(u'nom1', tombe['nom'])
-        
-        # Prénom
-        self.assertTrue(tombe.has_key('prenom'))
-        self.assertEqual(u'prénom1', tombe['prenom'])
-        
-        # Date de naissance
-        self.assertTrue(tombe.has_key('date_naissance'))
-        self.assertEqual('1985-10-20', tombe['date_naissance'])
-        
-        # Date de décès
-        self.assertTrue(tombe.has_key('date_deces'))
-        self.assertEqual('1985-10-21', tombe['date_deces'])
-        
-        # Activité
-        self.assertTrue(tombe.has_key('activite'))
-        self.assertEqual(u'activité1', tombe['activite'])
-        
-        # Résumé
-        self.assertTrue(tombe.has_key('resume'))
-        self.assertEqual(u'résumé1', tombe['resume'])
-        
-        # URL wikipedia
-        self.assertTrue(tombe.has_key('url_wikipedia'))
-        self.assertEqual(u'http://test1.fr', tombe['url_wikipedia'])
+        # Vérification du contenu du monument
+        self.assert_monument_equal(monument_json, monument_ref)
     
-    def test_2objects(self):
+    def test_2_personnalites(self):
         """
-        Avec 2 tombes en base.
+        Teste un monument auquel sont associées deux personnalités.
         """
-        # Préparation des données
-        Tombe(pk=1, nom_osm=u'tété', latitude=-96, longitude=0.123456, nom=u'nom1', prenom=u'prénom1', date_naissance='1985-10-20', date_deces='1985-10-21', activite=u'activité1', resume=u'résumé1', url_wikipedia=u'http://testé1.fr').save()
-        Tombe(pk=999, nom_osm=u'toto', latitude=96, longitude=3.123456, nom=u'nom2', prenom=u'', activite=u'', resume=u'', url_wikipedia=u'').save()
         
-        # Requête de la liste des tombes
-        response = self.client.get('/webservice/tombe/')
+        monument_ref = Monument.objects.get(nom = u'Tombeau d\'Abélard et Héloïse')
+        self.assertEqual(2, monument_ref.personnalite_set.count())
+        
+        # Requête avec GET
+        response = self.client.get('/webservice/monument/all/')
         
         # Vérification du statut HTTP
         self.assertEqual(200, response.status_code)
@@ -170,110 +284,210 @@ class TombeTest(TestCase):
         jsonObject = json.loads(response.content)
         self.assertTrue(isinstance(jsonObject, dict))
         
-        # Vérification de la présence de la liste de tombes
-        self.assertTrue(jsonObject.has_key('tombes'))
-        tombes = jsonObject['tombes'];
-        self.assertTrue(isinstance(tombes, list))
+        # Vérification de la présence de la liste de monuments
+        self.assertTrue(jsonObject.has_key('monuments'))
+        monuments = jsonObject['monuments'];
+        self.assertTrue(isinstance(monuments, list))
+        
+        # Récupération du dictionnaire des monuments
+        dict_monuments = self.util_list_to_dict_result(monuments)
+        
+        # Vérification de la présence du monument de référence
+        self.assertTrue(dict_monuments.has_key(monument_ref.nom))
+        monument_json = dict_monuments[monument_ref.nom]
+        
+        # Vérification du contenu du monument
+        self.assert_monument_equal(monument_json, monument_ref)
+    
+    def test_3_personnalites(self):
+        """
+        Teste un monument auquel sont associées deux personnalités.
+        """
+        
+        monument_ref = Monument.objects.get(nom = u'Famille d\'Aboville')
+        self.assertEqual(3, monument_ref.personnalite_set.count())
+        
+        # Requête avec GET
+        response = self.client.get('/webservice/monument/all/')
+        
+        # Vérification du statut HTTP
+        self.assertEqual(200, response.status_code)
+        
+        # Vérification du type de contenu
+        self.assertEqual('application/json', response['Content-Type'])
+        
+        # Parcours des objets reçus
+        jsonObject = json.loads(response.content)
+        self.assertTrue(isinstance(jsonObject, dict))
+        
+        # Vérification de la présence de la liste de monuments
+        self.assertTrue(jsonObject.has_key('monuments'))
+        monuments = jsonObject['monuments'];
+        self.assertTrue(isinstance(monuments, list))
+        
+        # Récupération du dictionnaire des monuments
+        dict_monuments = self.util_list_to_dict_result(monuments)
+        
+        # Vérification de la présence du monument de référence
+        self.assertTrue(dict_monuments.has_key(monument_ref.nom))
+        monument_json = dict_monuments[monument_ref.nom]
+        
+        # Vérification du contenu du monument
+        self.assert_monument_equal(monument_json, monument_ref)
+    
+    def test_champs_vides(self):
+        """
+        Teste un monument auquel est associée une personnalité et pour lequel tous les champs possibles sont vides.
+        """
+        
+        monument_ref = Monument.objects.get(nom = u'Téo Hernandez')
+        
+        # Mise à vide ou None des champs quand possible
+        monument_ref.code_wikipedia = ''
+        monument_ref.resume = ''
+        
+        for personnalite_ref in monument_ref.personnalite_set.all():
+            personnalite_ref.code_wikipedia = ''
+            personnalite_ref.activite = ''
+            personnalite_ref.resume = ''
+            personnalite_ref.date_naissance = None
+            personnalite_ref.date_deces = None
+            
+            personnalite_ref.save()
+        
+        monument_ref.save()
+        
+        # Requête avec GET
+        response = self.client.get('/webservice/monument/all/')
+        
+        # Vérification du statut HTTP
+        self.assertEqual(200, response.status_code)
+        
+        # Vérification du type de contenu
+        self.assertEqual('application/json', response['Content-Type'])
+        
+        # Parcours des objets reçus
+        jsonObject = json.loads(response.content)
+        self.assertTrue(isinstance(jsonObject, dict))
+        
+        # Vérification de la présence de la liste de monuments
+        self.assertTrue(jsonObject.has_key('monuments'))
+        monuments = jsonObject['monuments'];
+        self.assertTrue(isinstance(monuments, list))
+        
+        # Récupération du dictionnaire des monuments
+        dict_monuments = self.util_list_to_dict_result(monuments)
+        
+        # Vérification de la présence du monument de référence
+        self.assertTrue(dict_monuments.has_key(monument_ref.nom))
+        monument_json = dict_monuments[monument_ref.nom]
+        
+        # Vérification du contenu du monument
+        self.assert_monument_equal(monument_json, monument_ref)
+    
+    def test_avant_1900(self):
+        """
+        Teste un monument auquel est associée une personnalité dont les dates de naissance et de décès sont inférieures à 1900.
+        Testé à cause d'une limitation des bibliothèques Python.
+        """
+        
+        monument_ref = Monument.objects.get(nom = u'François d\'Astier de La Vigerie')
+        
+        # Modification des dates de la personnalité
+        for personnalite_ref in monument_ref.personnalite_set.all():
+            personnalite_ref.date_naissance = datetime.date(1645,10,15)
+            personnalite_ref.date_deces = datetime.date(1745,10,15)
+            
+            personnalite_ref.save()
+        
+        # Requête avec GET
+        response = self.client.get('/webservice/monument/all/')
+        
+        # Vérification du statut HTTP
+        self.assertEqual(200, response.status_code)
+        
+        # Vérification du type de contenu
+        self.assertEqual('application/json', response['Content-Type'])
+        
+        # Parcours des objets reçus
+        jsonObject = json.loads(response.content)
+        self.assertTrue(isinstance(jsonObject, dict))
+        
+        # Vérification de la présence de la liste de monuments
+        self.assertTrue(jsonObject.has_key('monuments'))
+        monuments = jsonObject['monuments'];
+        self.assertTrue(isinstance(monuments, list))
+        
+        # Récupération du dictionnaire des monuments
+        dict_monuments = self.util_list_to_dict_result(monuments)
+        
+        # Vérification de la présence du monument de référence
+        self.assertTrue(dict_monuments.has_key(monument_ref.nom))
+        monument_json = dict_monuments[monument_ref.nom]
+        
+        # Vérification du contenu du monument
+        self.assert_monument_equal(monument_json, monument_ref)
+    
+    def test_non_controle(self):
+        """
+        Vérifie qu'un monument non contrôlé n'est pas renvoyé.
+        """
+        
+        monument_ref = Monument.objects.get(nom = u'Isadora Duncan')
+        
+        # Modification en base
+        monument_ref.controle = 0
+        monument_ref.save()
+        
+        # Requête avec GET
+        response = self.client.get('/webservice/monument/all/')
+        
+        # Vérification du statut HTTP
+        self.assertEqual(200, response.status_code)
+        
+        # Vérification du type de contenu
+        self.assertEqual('application/json', response['Content-Type'])
+        
+        # Parcours des objets reçus
+        jsonObject = json.loads(response.content)
+        self.assertTrue(isinstance(jsonObject, dict))
+        
+        # Vérification de la présence de la liste de monuments
+        self.assertTrue(jsonObject.has_key('monuments'))
+        monuments = jsonObject['monuments'];
+        self.assertTrue(isinstance(monuments, list))
+        
+        # Récupération du dictionnaire des monuments
+        dict_monuments = self.util_list_to_dict_result(monuments)
+        
+        # Vérification de la non présence du monument de référence
+        self.assertFalse(dict_monuments.has_key(monument_ref.nom))
+    
+    def test_all_nodata(self):
+        """
+        Requête avec tous les monuments non contrôlés
+        """
+        
+        # Passage au statut non contrôlé de tous les monuments
+        Monument.objects.all().update(controle=0); 
+        
+        # Requête avec GET
+        response = self.client.get('/webservice/monument/all/')
+        
+        # Vérification du statut HTTP
+        self.assertEqual(200, response.status_code)
+        
+        # Vérification du type de contenu
+        self.assertEqual('application/json', response['Content-Type'])
+        
+        # Parcours des objets reçus
+        jsonObject = json.loads(response.content)
+        self.assertTrue(isinstance(jsonObject, dict))
+        
+        # Vérification de la présence de la liste de monuments
+        self.assertTrue(jsonObject.has_key('monuments'))
+        monuments = jsonObject['monuments'];
+        self.assertTrue(isinstance(monuments, list))
         
         # Vérification du nombre d'objets reçus
-        self.assertEqual(2, len(tombes))
-        
-        # Parcours des objets tombes
-        # Pas d'assertion sur l'ordre des tombes
-        tombe1 = False;
-        tombe2 = False;
-        for i in range(2):
-            # Récupération de la tombe
-            tombe = tombes[i];
-            self.assertTrue(isinstance(tombe, dict))
-            
-            # Vérification de la présence de l'identifiant
-            self.assertTrue(tombe.has_key('id'))
-            
-            if tombe['id'] == 1:
-                # Cas de la tombe 1
-                tombe1 = True;
-                
-                # Latitude
-                self.assertTrue(tombe.has_key('latitude'))
-                self.assertEqual(-96, tombe['latitude'])
-        
-                # Longitude
-                self.assertTrue(tombe.has_key('longitude'))
-                self.assertEqual(0.123456, tombe['longitude'])
-                
-                # Nom
-                self.assertTrue(tombe.has_key('nom'))
-                self.assertEqual(u'nom1', tombe['nom'])
-        
-                # Prénom
-                self.assertTrue(tombe.has_key('prenom'))
-                self.assertEqual(u'prénom1', tombe['prenom'])
-        
-                # Date de naissance
-                self.assertTrue(tombe.has_key('date_naissance'))
-                self.assertEqual('1985-10-20', tombe['date_naissance'])
-        
-                # Date de décès
-                self.assertTrue(tombe.has_key('date_deces'))
-                self.assertEqual('1985-10-21', tombe['date_deces'])
-        
-                # Activité
-                self.assertTrue(tombe.has_key('activite'))
-                self.assertEqual(u'activité1', tombe['activite'])
-        
-                # Résumé
-                self.assertTrue(tombe.has_key('resume'))
-                self.assertEqual(u'résumé1', tombe['resume'])
-        
-                # URL wikipedia
-                self.assertTrue(tombe.has_key('url_wikipedia'))
-                self.assertEqual(u'http://test%C3%A91.fr', tombe['url_wikipedia'])
-        
-            elif tombe['id'] == 999:
-                # Cas de la tombe 2
-                tombe2 = True;
-                
-                # Latitude
-                self.assertTrue(tombe.has_key('latitude'))
-                self.assertEqual(96, tombe['latitude'])
-        
-                # Longitude
-                self.assertTrue(tombe.has_key('longitude'))
-                self.assertEqual(3.123456, tombe['longitude'])
-                
-                # Nom
-                self.assertTrue(tombe.has_key('nom'))
-                self.assertEqual(u'nom2', tombe['nom'])
-        
-                # Prénom
-                self.assertTrue(tombe.has_key('prenom'))
-                self.assertEqual(u'', tombe['prenom'])
-        
-                # Date de naissance
-                self.assertTrue(tombe.has_key('date_naissance'))
-                self.assertEqual('', tombe['date_naissance'])
-        
-                # Date de décès
-                self.assertTrue(tombe.has_key('date_deces'))
-                self.assertEqual('', tombe['date_deces'])
-        
-                # Activité
-                self.assertTrue(tombe.has_key('activite'))
-                self.assertEqual(u'', tombe['activite'])
-        
-                # Résumé
-                self.assertTrue(tombe.has_key('resume'))
-                self.assertEqual(u'', tombe['resume'])
-        
-                # URL wikipedia
-                self.assertTrue(tombe.has_key('url_wikipedia'))
-                self.assertEqual(u'', tombe['url_wikipedia'])
-                
-            else:
-                # Identifiant de tombe non attendu
-                self.fail();
-        
-        # Vérification de la présence de toutes les tombes attendues
-        if not tombe1 or not tombe2:
-            self.fail();
+        self.assertEqual(0, len(monuments))
