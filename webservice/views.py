@@ -29,7 +29,7 @@ def monument_all(request):
     """
     
     # Récupération de la liste des monuments contrôlés
-    monuments = Monument.objects.filter(controle = 1)
+    monuments = Monument.objects.filter(controle = 1).order_by('nom_pour_tri')
     
     # Construction du résultat
     list = []
@@ -53,7 +53,7 @@ def monument_all(request):
         
         # Personnalites
         personnalites_result = []
-        for personnalite in monument.personnalite_set.all():
+        for personnalite in monument.personnalite_set.all().order_by('nom'):
             personnalites_result.append({
                 'id': toJsonString(personnalite.pk),
                 'nom': toJsonString(personnalite.nom),
@@ -71,7 +71,7 @@ def monument_all(request):
         list.append(monument_result)
     
     # Construction du contenu de la réponse
-    content = json.dumps({'monuments': list}, ensure_ascii=False)
+    content = json.dumps({'monuments': list}, ensure_ascii=False, indent=4, separators=(',', ': '), sort_keys=True)
     
     # Renvoi de la réponse
     return HttpResponse(content, mimetype='application/json; charset=utf-8')
