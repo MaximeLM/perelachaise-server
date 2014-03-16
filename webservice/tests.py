@@ -213,7 +213,7 @@ class MonumentAllTest(TestCase):
         self.assertEqual(200, response.status_code)
         
         # Vérification du type de contenu
-        self.assertEqual('application/json', response['Content-Type'])
+        self.assertEqual('application/json; charset=utf-8', response['Content-Type'])
         
         # Parcours des objets reçus
         jsonObject = json.loads(response.content)
@@ -242,7 +242,7 @@ class MonumentAllTest(TestCase):
         self.assertEqual(200, response.status_code)
         
         # Vérification du type de contenu
-        self.assertEqual('application/json', response['Content-Type'])
+        self.assertEqual('application/json; charset=utf-8', response['Content-Type'])
         
         # Parcours des objets reçus
         jsonObject = json.loads(response.content)
@@ -278,7 +278,7 @@ class MonumentAllTest(TestCase):
         self.assertEqual(200, response.status_code)
         
         # Vérification du type de contenu
-        self.assertEqual('application/json', response['Content-Type'])
+        self.assertEqual('application/json; charset=utf-8', response['Content-Type'])
         
         # Parcours des objets reçus
         jsonObject = json.loads(response.content)
@@ -314,7 +314,7 @@ class MonumentAllTest(TestCase):
         self.assertEqual(200, response.status_code)
         
         # Vérification du type de contenu
-        self.assertEqual('application/json', response['Content-Type'])
+        self.assertEqual('application/json; charset=utf-8', response['Content-Type'])
         
         # Parcours des objets reçus
         jsonObject = json.loads(response.content)
@@ -364,7 +364,7 @@ class MonumentAllTest(TestCase):
         self.assertEqual(200, response.status_code)
         
         # Vérification du type de contenu
-        self.assertEqual('application/json', response['Content-Type'])
+        self.assertEqual('application/json; charset=utf-8', response['Content-Type'])
         
         # Parcours des objets reçus
         jsonObject = json.loads(response.content)
@@ -407,7 +407,7 @@ class MonumentAllTest(TestCase):
         self.assertEqual(200, response.status_code)
         
         # Vérification du type de contenu
-        self.assertEqual('application/json', response['Content-Type'])
+        self.assertEqual('application/json; charset=utf-8', response['Content-Type'])
         
         # Parcours des objets reçus
         jsonObject = json.loads(response.content)
@@ -446,7 +446,7 @@ class MonumentAllTest(TestCase):
         self.assertEqual(200, response.status_code)
         
         # Vérification du type de contenu
-        self.assertEqual('application/json', response['Content-Type'])
+        self.assertEqual('application/json; charset=utf-8', response['Content-Type'])
         
         # Parcours des objets reçus
         jsonObject = json.loads(response.content)
@@ -478,7 +478,7 @@ class MonumentAllTest(TestCase):
         self.assertEqual(200, response.status_code)
         
         # Vérification du type de contenu
-        self.assertEqual('application/json', response['Content-Type'])
+        self.assertEqual('application/json; charset=utf-8', response['Content-Type'])
         
         # Parcours des objets reçus
         jsonObject = json.loads(response.content)

@@ -74,4 +74,4 @@ def monument_all(request):
     content = json.dumps({'monuments': list}, ensure_ascii=False)
     
     # Renvoi de la réponse
-    return HttpResponse(content, mimetype='application/json')
+    return HttpResponse(content, mimetype='application/json; charset=utf-8')
