@@ -9,6 +9,7 @@ from django.test import TestCase
 from django.test.client import Client
 
 from perelachaise.models import NodeOSM, Monument, Personnalite
+from webservice.views import to_json_string, prepare_json_nodeOSM_for_monument_all, prepare_json_personnalite_for_monument_all, prepare_json_monument_for_monument_all
 
 class MonumentAllTest(TestCase):
     """
@@ -301,7 +302,7 @@ class MonumentAllTest(TestCase):
     
     def test_3_personnalites(self):
         """
-        Teste un monument auquel sont associées deux personnalités.
+        Teste un monument auquel sont associées trois personnalités.
         """
         
         monument_ref = Monument.objects.get(nom = u'Famille d\'Aboville')
@@ -491,3 +492,107 @@ class MonumentAllTest(TestCase):
         
         # Vérification du nombre d'objets reçus
         self.assertEqual(0, len(monuments))
+    
+    def test_to_json_string_none(self):
+        """
+        Un objet None doit être converti en chaîne de caractères vide.
+        """
+        self.assertEqual('',to_json_string(None))
+    
+    def test_to_json_string_string(self):
+        """
+        String
+        """
+        test = 'test'
+        self.assertEqual(test,to_json_string(test))
+    
+    def test_to_json_string_utf8(self):
+        """
+        String UTF8
+        """
+        test = u'Testé'
+        self.assertEqual(test,to_json_string(test))
+    
+    def test_to_json_string_date(self):
+        """
+        Date + heure
+        """
+        date = datetime.date.today()
+        self.assertEqual(str(date),to_json_string(date))
+    
+    def test_to_json_string_decimal(self):
+        """
+        Décimal
+        """
+        decimal = Decimal(42)
+        self.assertEqual(str(decimal),to_json_string(decimal))
+    
+    def test_prepare_json_nodeOSM_for_monument_all(self):
+        """
+        Préparation json d'un node OSM
+        """
+        nodeOSM = NodeOSM.objects.get(pk=2663325709)
+        nodeOSM_json = prepare_json_nodeOSM_for_monument_all(nodeOSM)
+        
+        self.assertEqual(nodeOSM.id, nodeOSM_json['id'])
+        self.assertEqual(nodeOSM.latitude, Decimal(nodeOSM_json['latitude']))
+        self.assertEqual(nodeOSM.longitude, Decimal(nodeOSM_json['longitude']))
+    
+    def test_prepare_json_personnalite_for_monument_all_full(self):
+        """
+        Préparation json d'une personnalité (cas où tous les champs sont remplis)
+        """
+        personnalite = Personnalite.objects.get(pk=120)
+        personnalite_json = prepare_json_personnalite_for_monument_all(personnalite)
+        
+        self.assertEqual(personnalite.id, personnalite_json['id'])
+        self.assertEqual(personnalite.nom, personnalite_json['nom'])
+        self.assertEqual(personnalite.code_wikipedia, personnalite_json['code_wikipedia'])
+        self.assertEqual(personnalite.activite, personnalite_json['activite'])
+        self.assertEqual(personnalite.resume, personnalite_json['resume'])
+        self.assertEqual(personnalite.date_naissance, datetime.date(*time.strptime(personnalite_json['date_naissance'], "%Y-%m-%d")[:3]))
+        self.assertEqual(personnalite.date_deces, datetime.date(*time.strptime(personnalite_json['date_deces'], "%Y-%m-%d")[:3]))
+        self.assertEqual(personnalite.date_naissance_precision, personnalite_json['date_naissance_precision'])
+        self.assertEqual(personnalite.date_deces_precision, personnalite_json['date_deces_precision'])
+    
+    def test_prepare_json_personnalite_for_monument_all_empty(self):
+        """
+        Préparation json d'une personnalité (cas où tous les champs possibles sont vides)
+        """
+        personnalite = Personnalite.objects.get(pk=120)
+        personnalite.code_wikipedia = ''
+        personnalite.activite = ''
+        personnalite.resume = ''
+        personnalite.date_naissance = ''
+        personnalite.date_deces = ''
+        personnalite_json = prepare_json_personnalite_for_monument_all(personnalite)
+        
+        self.assertEqual(personnalite.id, personnalite_json['id'])
+        self.assertEqual(personnalite.nom, personnalite_json['nom'])
+        self.assertEqual(personnalite.code_wikipedia, personnalite_json['code_wikipedia'])
+        self.assertEqual(personnalite.activite, personnalite_json['activite'])
+        self.assertEqual(personnalite.resume, personnalite_json['resume'])
+        self.assertEqual('', personnalite_json['date_naissance'])
+        self.assertEqual('', personnalite_json['date_deces'])
+        self.assertEqual(personnalite.date_naissance_precision, personnalite_json['date_naissance_precision'])
+        self.assertEqual(personnalite.date_deces_precision, personnalite_json['date_deces_precision'])
+    
+    def test_prepare_json_monument_for_monument_all(self):
+        """
+        Préparation json d'un monument
+        """
+        monument = Monument.objects.get(nom = u'Famille d\'Aboville')
+        monument_json = prepare_json_monument_for_monument_all(monument)
+        
+        # Parcours des personnalités
+        personnalites = {}
+        for personnalite in monument_json['personnalites']:
+            # Récupération du nom
+            nom_personnalite = personnalite['nom']
+            
+            # Ajout au dictionnaire
+            personnalites[nom_personnalite] = personnalite
+        
+        monument_json['personnalites'] = personnalites
+        
+        self.assert_monument_equal(monument_json, monument)

@@ -9,7 +9,7 @@ from django.views.decorators.http import require_http_methods
 
 from perelachaise.models import Monument
 
-def toJsonString(obj):
+def to_json_string(obj):
     """ Convertit un objet python en représentation JSON """
     if obj == None:
         return ''
@@ -20,6 +20,57 @@ def toJsonString(obj):
     else:
         return obj
 
+def dump_json(jsonObject):
+    """ Convertit un objet python en JSON """
+    return json.dumps(jsonObject, ensure_ascii=False, indent=4, separators=(',', ': '), sort_keys=True)
+
+def prepare_json_nodeOSM_for_monument_all(node_osm):
+    """ Renvoie un dictionnaire pour dump json correspondant à l'objet indiqué """
+    result = {
+            'id': to_json_string(node_osm.pk),
+            'latitude': to_json_string(node_osm.latitude),
+            'longitude': to_json_string(node_osm.longitude),
+        }
+    return result
+
+def prepare_json_personnalite_for_monument_all(personnalite):
+    """ Renvoie un dictionnaire pour dump json correspondant à l'objet indiqué """
+    result = {
+            'id': to_json_string(personnalite.pk),
+            'nom': to_json_string(personnalite.nom),
+            'code_wikipedia': to_json_string(personnalite.code_wikipedia),
+            'activite': to_json_string(personnalite.activite),
+            'resume': to_json_string(personnalite.resume),
+            'date_naissance': to_json_string(personnalite.date_naissance),
+            'date_naissance_precision': to_json_string(personnalite.date_naissance_precision),
+            'date_deces': to_json_string(personnalite.date_deces),
+            'date_deces_precision': to_json_string(personnalite.date_deces_precision),
+        }
+    return result
+
+def prepare_json_monument_for_monument_all(monument):
+    """ Renvoie un dictionnaire pour dump json correspondant à l'objet indiqué """
+    # Monument
+    result = {
+        'id': to_json_string(monument.pk),
+        'nom': to_json_string(monument.nom),
+        'nom_pour_tri': to_json_string(monument.nom_pour_tri),
+        'code_wikipedia': to_json_string(monument.code_wikipedia),
+        'resume': to_json_string(monument.resume),
+    }
+    
+    # Node OSM
+    node_osm = monument.node_osm
+    result['node_osm'] = prepare_json_nodeOSM_for_monument_all(node_osm)
+    
+    # Personnalites
+    personnalites_result = []
+    for personnalite in monument.personnalite_set.all().order_by('nom'):
+        personnalites_result.append(prepare_json_personnalite_for_monument_all(personnalite))
+    
+    result['personnalites'] = personnalites_result
+    
+    return result
 
 @require_http_methods(["GET"])
 def monument_all(request):
@@ -34,44 +85,10 @@ def monument_all(request):
     # Construction du résultat
     list = []
     for monument in monuments:
-        # Monument
-        monument_result = {
-            'id': toJsonString(monument.pk),
-            'nom': toJsonString(monument.nom),
-            'nom_pour_tri': toJsonString(monument.nom_pour_tri),
-            'code_wikipedia': toJsonString(monument.code_wikipedia),
-            'resume': toJsonString(monument.resume),
-        }
-        
-        # Node OSM
-        node_osm = monument.node_osm
-        monument_result['node_osm'] = {
-            'id': toJsonString(node_osm.pk),
-            'latitude': toJsonString(node_osm.latitude),
-            'longitude': toJsonString(node_osm.longitude),
-        }
-        
-        # Personnalites
-        personnalites_result = []
-        for personnalite in monument.personnalite_set.all().order_by('nom'):
-            personnalites_result.append({
-                'id': toJsonString(personnalite.pk),
-                'nom': toJsonString(personnalite.nom),
-                'code_wikipedia': toJsonString(personnalite.code_wikipedia),
-                'activite': toJsonString(personnalite.activite),
-                'resume': toJsonString(personnalite.resume),
-                'date_naissance': toJsonString(personnalite.date_naissance),
-                'date_naissance_precision': toJsonString(personnalite.date_naissance_precision),
-                'date_deces': toJsonString(personnalite.date_deces),
-                'date_deces_precision': toJsonString(personnalite.date_deces_precision),
-            })
-        
-        monument_result['personnalites'] = personnalites_result
-        
-        list.append(monument_result)
+        list.append(prepare_json_monument_for_monument_all(monument))
     
     # Construction du contenu de la réponse
-    content = json.dumps({'monuments': list}, ensure_ascii=False, indent=4, separators=(',', ': '), sort_keys=True)
+    content = dump_json({'monuments': list})
     
     # Renvoi de la réponse
     return HttpResponse(content, mimetype='application/json; charset=utf-8')
