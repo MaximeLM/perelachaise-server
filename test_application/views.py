@@ -84,6 +84,8 @@ def monumentall_monument(request, name):
     monument1 = Monument.objects.get(pk=164)            # Mur des Fédérés (full + UTF8)
     monument2 = Monument.objects.get(pk=120)            # Jim Morrison (vide)
     
+    nodeOSM1 = NodeOSM.objects.get(pk=2661217171)       # Jean de La Fontaine
+    
     personnalite1 = Personnalite.objects.get(pk=207)    # Alain Bashung
     personnalite2 = Personnalite.objects.get(pk=76)     # Georges Courteline
     personnalite3 = Personnalite.objects.get(pk=120)    # Jim Morrison
@@ -127,6 +129,10 @@ def monumentall_monument(request, name):
         
         # Construction du résultat
         result = prepare_json_monument_for_monument_all(monument)
+        
+        # Modification du node OSM
+        result_nodeOSM1 = prepare_json_nodeOSM_for_monument_all(nodeOSM1)
+        result['node_osm'] = result_nodeOSM1
         
     elif name == 'monument2_update2':
         monument = monument2
