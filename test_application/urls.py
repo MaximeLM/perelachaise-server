@@ -5,7 +5,13 @@ from django.conf.urls import patterns, url
 from test_application import views
 
 urlpatterns = patterns('',
-    url(r'^monumentall/nodeOSM/(?P<name>\w+)$', views.monumentall_nodeOSM, name='monumentall_nodeOSM'),
-    url(r'^monumentall/personnalite/(?P<name>\w+)$', views.monumentall_personnalite, name='monumentall_personnalite'),
-    url(r'^monumentall/monument/(?P<name>\w+)$', views.monumentall_monument, name='monumentall_monument'),
+    url(r'^fixtures/monumentall/nodeOSM/(?P<name>\w+)$', views.fixtures_monumentall_nodeOSM, name='fixtures_monumentall_nodeOSM'),
+    url(r'^fixtures/monumentall/personnalite/(?P<name>\w+)$', views.fixtures_monumentall_personnalite, name='fixtures_monumentall_personnalite'),
+    url(r'^fixtures/monumentall/monument/(?P<name>\w+)$', views.fixtures_monumentall_monument, name='fixtures_monumentall_monument'),
+    
+    url(r'^monument/all/$', views.monument_all, name='monument_all'),
+    
+    url(r'^truc/monument/all/$', views.monument_all, name='monument_all'),
+    url(r'^monument/all/truc/$', views.monument_all, name='monument_all'),
+    url(r'^truc/$', views.monument_all, name='monument_all'),
 )

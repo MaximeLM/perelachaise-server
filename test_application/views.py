@@ -3,14 +3,14 @@
 import json
 from decimal import Decimal
 
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound, HttpResponseRedirect, HttpResponseServerError
 from django.views.decorators.http import require_http_methods
 
 from perelachaise.models import Monument, Personnalite, NodeOSM
 from webservice.views import dump_json, prepare_json_nodeOSM_for_monument_all, prepare_json_personnalite_for_monument_all, prepare_json_monument_for_monument_all
 
 @require_http_methods(["GET"])
-def monumentall_nodeOSM(request, name):
+def fixtures_monumentall_nodeOSM(request, name):
     """
     Renvoie la fixture de Node OSM pour la vue monument/all/ correspondant au nom indiqué
     """
@@ -40,7 +40,7 @@ def monumentall_nodeOSM(request, name):
     return HttpResponse(dump_json(result), mimetype='application/json; charset=utf-8')
 
 @require_http_methods(["GET"])
-def monumentall_personnalite(request, name):
+def fixtures_monumentall_personnalite(request, name):
     """
     Renvoie la fixture de personnalité pour la vue monument/all/ correspondant au nom indiqué
     """
@@ -74,7 +74,7 @@ def monumentall_personnalite(request, name):
     return HttpResponse(dump_json(result), mimetype='application/json; charset=utf-8')
 
 @require_http_methods(["GET"])
-def monumentall_monument(request, name):
+def fixtures_monumentall_monument(request, name):
     """
     Renvoie la fixture de monument pour la vue monument/all/ correspondant au nom indiqué
     """
@@ -150,6 +150,82 @@ def monumentall_monument(request, name):
         
         result['personnalites'] = [result_personnalite3, result_personnalite4]
     
+    else:
+        return HttpResponseBadRequest()
+    
+    return HttpResponse(dump_json(result), mimetype='application/json; charset=utf-8')
+
+def monument_all(request):
+    """
+    Bouchon de la requête monument/all/
+    """
+    
+    # Récupération du paramètre de la requête
+    if not request.REQUEST.has_key('name'):
+        name = '2_ok'
+    else:
+        name = request.REQUEST['name']
+    
+    if name == '1_ok':
+        # Chargement des monuments
+        monument1 = prepare_json_monument_for_monument_all(Monument.objects.get(pk=120))
+        monument2 = prepare_json_monument_for_monument_all(Monument.objects.get(pk=164))
+        monument3 = prepare_json_monument_for_monument_all(Monument.objects.get(pk=227))
+        
+        result = {'monuments': [monument1, monument2, monument3]}
+        
+    elif name == '2_ok':
+        # Chargement des monuments
+        monument1 = prepare_json_monument_for_monument_all(Monument.objects.get(pk=92))
+        monument2 = prepare_json_monument_for_monument_all(Monument.objects.get(pk=120))
+        
+        result = {'monuments': [monument1, monument2]}
+        
+    elif name == '3_vide':
+        result = {'monuments': []}
+        
+    elif name == '4_souscle':
+        # Chargement des monuments
+        monument1 = prepare_json_monument_for_monument_all(Monument.objects.get(pk=92))
+        
+        result = {'trucs': {'monuments': [monument1]}}
+        
+    elif name == '5_surcle':
+        # Chargement des monuments
+        monument1 = prepare_json_monument_for_monument_all(Monument.objects.get(pk=92))
+        
+        result = {'monuments': {'trucs': [monument1]}}
+        
+    elif name == '6_doublecle':
+        # Chargement des monuments
+        monument1 = prepare_json_monument_for_monument_all(Monument.objects.get(pk=92))
+        
+        result = {'monuments': {'monuments': [monument1]}}
+        
+    elif name == '7_autrecle':
+        # Chargement des monuments
+        monument1 = prepare_json_monument_for_monument_all(Monument.objects.get(pk=92))
+        
+        result = {'trucs': [monument1]}
+        
+    elif name == '8_404':
+        # Chargement des monuments
+        monument1 = prepare_json_monument_for_monument_all(Monument.objects.get(pk=92))
+        monument2 = prepare_json_monument_for_monument_all(Monument.objects.get(pk=120))
+        
+        result = {'monuments': [monument1, monument2]}
+        
+        return HttpResponseNotFound(dump_json(result), mimetype='application/json; charset=utf-8')
+        
+    elif name == '9_500':
+        # Chargement des monuments
+        monument1 = prepare_json_monument_for_monument_all(Monument.objects.get(pk=92))
+        monument2 = prepare_json_monument_for_monument_all(Monument.objects.get(pk=120))
+        
+        result = {'monuments': [monument1, monument2]}
+        
+        return HttpResponseServerError(dump_json(result), mimetype='application/json; charset=utf-8')
+        
     else:
         return HttpResponseBadRequest()
     
