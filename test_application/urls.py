@@ -11,7 +11,9 @@ urlpatterns = patterns('',
     
     url(r'^monument/all/$', views.monument_all, name='monument_all'),
     
-    url(r'^truc/monument/all/$', views.monument_all, name='monument_all'),
-    url(r'^monument/all/truc/$', views.monument_all, name='monument_all'),
-    url(r'^truc/$', views.monument_all, name='monument_all'),
+    url(r'^truc/monument/all/$', views.monument_all, name='monument_all1'),
+    url(r'^monument/all/truc/$', views.monument_all, name='monument_all2'),
+    url(r'^truc/$', views.monument_all, name='monument_all3'),
+    
+    url(r'^fixtures/webservice/$', views.fixtures_test_webservice, name='fixtures_test_webservice'),
 )

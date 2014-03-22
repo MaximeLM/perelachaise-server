@@ -5,6 +5,7 @@ from decimal import Decimal
 
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound, HttpResponseRedirect, HttpResponseServerError
 from django.views.decorators.http import require_http_methods
+from django.core import serializers
 
 from perelachaise.models import Monument, Personnalite, NodeOSM
 from webservice.views import dump_json, prepare_json_nodeOSM_for_monument_all, prepare_json_personnalite_for_monument_all, prepare_json_monument_for_monument_all
@@ -240,3 +241,32 @@ def monument_all(request):
         return HttpResponseBadRequest()
     
     return HttpResponse(dump_json(result), mimetype='application/json; charset=utf-8')
+
+def fixtures_test_webservice(request):
+    """
+    Renvoie la fixture du modèle django pour les tests du web service
+    """
+    # Récupération des monuments voulus
+    monuments = [
+        Monument.objects.get(pk=120),   # Jim Morrison
+        Monument.objects.get(pk=193),   # Abélard & Héloïse
+        Monument.objects.get(pk=227),   # Famille d'Aboville
+        Monument.objects.get(pk=194),   # Téo Hernandez
+        Monument.objects.get(pk=228),   # François d'Astier de La Vigerie
+        Monument.objects.get(pk=99),    # Isadora Duncan
+        Monument.objects.get(pk=9)      # Alphonse Daudet
+    ]
+    
+    # Récupération des nodes OSM et personnalités associés
+    nodesOSM = []
+    personnalites = []
+    for monument in monuments:
+        nodesOSM.append(monument.node_osm)
+        for personnalite in monument.personnalite_set.all():
+            personnalites.append(personnalite)
+    
+    # Construction du résultat
+    result = monuments
+    result.extend(nodesOSM)
+    result.extend(personnalites)
+    return HttpResponse(serializers.serialize("json", result), mimetype='application/json; charset=utf-8')
