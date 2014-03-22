@@ -83,6 +83,7 @@ def fixtures_monumentall_monument(request, name):
     
     monument1 = Monument.objects.get(pk=164)            # Mur des Fédérés (full + UTF8)
     monument2 = Monument.objects.get(pk=120)            # Jim Morrison (vide)
+    monument3 = Monument.objects.get(pk=218)            # Édith Piaf
     
     nodeOSM1 = NodeOSM.objects.get(pk=2661217171)       # Jean de La Fontaine
     
@@ -150,6 +151,15 @@ def fixtures_monumentall_monument(request, name):
         
         result['personnalites'] = [result_personnalite3, result_personnalite4]
     
+    elif name == 'monument3':
+        monument = monument3
+        
+        # Construction du résultat
+        result = prepare_json_monument_for_monument_all(monument)
+        
+        # Modification du nom
+        result['nom_pour_tri'] = u'Édith'
+        
     else:
         return HttpResponseBadRequest()
     
