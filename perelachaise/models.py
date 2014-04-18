@@ -68,6 +68,9 @@ class Monument(models.Model):
     # Correspond en général à l'introduction de la page wikipedia
     resume = models.TextField(blank=True)
     
+    # Code de la catégorie Commons
+    categorie_commons = models.CharField(max_length=255, blank=True)
+    
     # Noms verbeux
     controle.verbose_name = u'contrôle'
     resume.verbose_name = u'résumé'
@@ -105,6 +108,9 @@ class Personnalite(models.Model):
     
     # Code de la page wikipedia
     code_wikipedia = models.CharField(max_length=255, blank=True)
+    
+    # Code de la catégorie Commons
+    categorie_commons = models.CharField(max_length=255, blank=True)
     
     # Nom
     nom = models.CharField(max_length=255)

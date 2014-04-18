@@ -84,6 +84,8 @@ class PersonnaliteInline(admin.StackedInline):
                            'lien_wikidata',
                            'code_wikipedia',
                            'lien_wikipedia',
+                           'categorie_commons',
+                           'lien_commons',
                            'date_naissance',
                            'date_naissance_precision',
                            'date_deces',
@@ -95,7 +97,7 @@ class PersonnaliteInline(admin.StackedInline):
     ]
     
     # Champs en lecture seule
-    readonly_fields = ('id','lien_wikidata','lien_wikipedia','resume_formatted',)
+    readonly_fields = ('id','lien_wikidata','lien_wikipedia','lien_commons','resume_formatted',)
     
     # ====================
     # Méthodes d'affichage
@@ -119,6 +121,16 @@ class PersonnaliteInline(admin.StackedInline):
             return ''
     
     lien_wikipedia.allow_tags = True
+    
+    def lien_commons(self, obj):
+        """ Affiche un lien vers la page wikimedia commons """
+        if obj.categorie_commons:
+            url_commons = 'http://commons.wikimedia.org/wiki/Category:' + obj.categorie_commons.encode('utf8')
+            return '<a href="%s">%s</a>' % (url_commons, url_commons)
+        else:
+            return ''
+    
+    lien_commons.allow_tags = True
     
     def nom_complet(self, obj):
         """ Affiche le nom complet de l'objet """
@@ -149,7 +161,7 @@ class MonumentAdmin(admin.ModelAdmin):
     list_display = ('nom_complet','controle',
                     'lien_node_osm_liste',
                     'activite',
-                    'wikidata','wikipedia',
+                    'wikidata','wikipedia','commons',
                     'nombre_personnalites')
     
     # Règle de tri par défaut
@@ -179,13 +191,15 @@ class MonumentAdmin(admin.ModelAdmin):
                                 'lien_wikidata',
                                 'code_wikipedia',
                                 'lien_wikipedia',
+                                'categorie_commons',
+                                'lien_commons',
                                 'resume',
                                 'resume_formatted'
                                 ]}),
     ]
     
     # Champs en lecture seule
-    readonly_fields = ('id','lien_wikidata', 'lien_wikipedia','resume_formatted',
+    readonly_fields = ('id','lien_wikidata','lien_wikipedia','lien_commons','resume_formatted',
                         'id_osm','latitude','longitude','lien_node_osm_detail')
     
     # Affichage des personnalités liées
@@ -217,6 +231,17 @@ class MonumentAdmin(admin.ModelAdmin):
     
     # Autorisation du lien HTTP
     lien_wikipedia.allow_tags = True
+    
+    def lien_commons(self, obj):
+        """ Affiche un lien vers la page wikimedia commons du monument """
+        if obj.categorie_commons:
+            url_commons = 'http://commons.wikimedia.org/wiki/Category:' + obj.categorie_commons
+            return '<a href="%s">%s</a>' % (url_commons, url_commons)
+        else:
+            return ''
+    
+    # Autorisation du lien HTTP
+    lien_commons.allow_tags = True
     
     def wikidata(self, obj):
         """ Affiche un lien vers la page wikidata calculée """
@@ -265,6 +290,21 @@ class MonumentAdmin(admin.ModelAdmin):
     
     # Nom verbeux
     wikipedia.short_description = u'lien Wikipedia'
+    
+    def commons(self, obj):
+        """ Affiche un lien vers la page wikimedia commons du monument """
+        # Affichage du lien du monument
+        if obj.categorie_commons:
+            url_commons = 'http://commons.wikimedia.org/wiki/Category:' + obj.categorie_commons.encode('utf8')
+            return '<a href="%s">%s</a>' % (url_commons, url_commons)
+        else:
+            return ''
+    
+    # Autorisation du lien HTTP
+    commons.allow_tags = True
+    
+    # Nom verbeux
+    commons.short_description = u'lien Wikimedia Commons'
     
     def activite(self, obj):
         """ Affiche l'activité de la personnalité associée si elle est unique"""
