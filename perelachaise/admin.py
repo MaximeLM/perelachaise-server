@@ -255,6 +255,7 @@ class MonumentAdmin(admin.ModelAdmin):
                                   ]}),
         (u'Image principale', {'fields': ['image_principale',
                                           'lien_image_principale_detail',
+                                          'lien_commons',
                                           'auteur',
                                           'licence'
                                           ]}),
@@ -264,15 +265,15 @@ class MonumentAdmin(admin.ModelAdmin):
                                 'code_wikipedia',
                                 'lien_wikipedia',
                                 'categorie_commons',
-                                'lien_commons',
+                                'lien_categorie_commons',
                                 'resume',
                                 'resume_formatted'
                                 ]}),
     ]
     
     # Champs en lecture seule
-    readonly_fields = ('id','lien_wikidata','lien_wikipedia','lien_commons','resume_formatted','auteur','licence',
-                        'id_osm','latitude','longitude','lien_node_osm_detail','lien_image_principale_detail')
+    readonly_fields = ('id','lien_wikidata','lien_wikipedia','lien_categorie_commons','resume_formatted','auteur','licence',
+                        'id_osm','latitude','longitude','lien_node_osm_detail','lien_image_principale_detail','lien_commons')
     
     # Affichage des personnalités liées
     inlines = [
@@ -304,7 +305,7 @@ class MonumentAdmin(admin.ModelAdmin):
     # Autorisation du lien HTTP
     lien_wikipedia.allow_tags = True
     
-    def lien_commons(self, obj):
+    def lien_categorie_commons(self, obj):
         """ Affiche un lien vers la page wikimedia commons du monument """
         if obj.categorie_commons:
             url_commons = 'http://commons.wikimedia.org/wiki/Category:' + obj.categorie_commons
@@ -313,7 +314,7 @@ class MonumentAdmin(admin.ModelAdmin):
             return ''
     
     # Autorisation du lien HTTP
-    lien_commons.allow_tags = True
+    lien_categorie_commons.allow_tags = True
     
     def wikidata(self, obj):
         """ Affiche un lien vers la page wikidata calculée """
@@ -386,6 +387,9 @@ class MonumentAdmin(admin.ModelAdmin):
             return personnalite.activite
         else:
             return ''
+    
+    # Nom verbeux
+    activite.short_description = u'activité'
     
     def lien_node_osm_liste(self, obj):
         """ Affiche un lien vers la page d'administration
@@ -514,6 +518,16 @@ class MonumentAdmin(admin.ModelAdmin):
             return obj.image_principale.licence
         else:
             return u''
+    
+    def lien_commons(self,obj):
+        """ Affiche le lien vers l'image dans Wikimedia Commons """
+        if obj.image_principale:
+            url_commons = 'http://commons.wikimedia.org/wiki/File:' + obj.image_principale.nom.encode('utf8')
+            return '<a href="%s">%s</a>' % (url_commons, url_commons)
+        else:
+            return u''
+    
+    lien_commons.allow_tags = True
     
     def queryset(self, request):
         """ Surcharge permettant le tri de la liste
