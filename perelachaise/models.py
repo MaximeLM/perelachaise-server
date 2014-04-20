@@ -39,6 +39,29 @@ class NodeOSM(models.Model):
         ordering = ('nom','id',)
 
 
+class ImageCommons(models.Model):
+    """
+    Représente une image issue de Wikimedia Commons.
+    """
+    
+    # Nom
+    nom = models.CharField(max_length=255,unique=True)
+    
+    # Auteur
+    auteur = models.CharField(max_length=255,blank=True)
+    
+    # Licence
+    licence = models.CharField(max_length=255,blank=True)
+    
+    def __unicode__(self):
+        return self.nom
+    
+    # Méta-propriétés de la classe
+    class Meta:
+        # Nom verbeux au pluriel
+        verbose_name_plural = u'Images Commons'
+
+
 class Monument(models.Model):
     """
     Représente un monument, généralement une tombe, relatif à un noeud OSM.
@@ -70,6 +93,9 @@ class Monument(models.Model):
     
     # Code de la catégorie Commons
     categorie_commons = models.CharField(max_length=255, blank=True)
+    
+    # Image Commons principale
+    image_principale = models.ForeignKey('ImageCommons',unique=True, blank=True, null=True, on_delete=models.PROTECT)
     
     # Noms verbeux
     controle.verbose_name = u'contrôle'
