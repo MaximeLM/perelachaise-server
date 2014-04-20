@@ -53,6 +53,9 @@ class ImageCommons(models.Model):
     # Licence
     licence = models.CharField(max_length=255,blank=True)
     
+    # URL de l'image originale
+    url_original = models.CharField(max_length=255,blank=True)
+    
     def __unicode__(self):
         return self.nom
     

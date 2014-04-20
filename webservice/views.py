@@ -40,6 +40,7 @@ def prepare_json_imageCommons_for_monument_all(image_commons):
             'nom': to_json_string(image_commons.nom),
             'auteur': to_json_string(image_commons.auteur),
             'licence': to_json_string(image_commons.licence),
+            'url_original': to_json_string(image_commons.url_original),
         }
     return result
 

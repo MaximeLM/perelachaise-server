@@ -85,7 +85,7 @@ class ImageCommonsAdmin(admin.ModelAdmin):
     actions=None
     
     # Champs en lecture seule
-    readonly_fields = ('id','lien_commons',)
+    readonly_fields = ('id','lien_commons','original',)
     
     # =================
     # Détail d'un objet
@@ -93,7 +93,7 @@ class ImageCommonsAdmin(admin.ModelAdmin):
     
     # Liste des champs affichés
     fieldsets = [
-        (None, {'fields': ['id','nom','lien_commons','auteur','licence']}),
+        (None, {'fields': ['id','nom','lien_commons','auteur','licence','url_original','original']}),
     ]
     
     # ====================
@@ -106,6 +106,15 @@ class ImageCommonsAdmin(admin.ModelAdmin):
         return '<a href="%s">%s</a>' % (url_commons, obj.nom.encode('utf8'))
     
     lien_commons.allow_tags = True
+    
+    def original(self,obj):
+        """ Affiche l'url de l'image originale """
+        if obj.url_original:
+            return u'<a href="%s">%s</a>' % (obj.url_original,obj.url_original)
+        else:
+            return u''
+    
+    original.allow_tags = True
     
     # Règle de tri
     lien_commons.admin_order_field = 'nom'
@@ -257,7 +266,8 @@ class MonumentAdmin(admin.ModelAdmin):
                                           'lien_image_principale_detail',
                                           'lien_commons',
                                           'auteur',
-                                          'licence'
+                                          'licence',
+                                          'original'
                                           ]}),
         (u'Monument', {'fields': ['id','nom','nom_pour_tri',
                                 'code_wikidata',
@@ -273,7 +283,8 @@ class MonumentAdmin(admin.ModelAdmin):
     
     # Champs en lecture seule
     readonly_fields = ('id','lien_wikidata','lien_wikipedia','lien_categorie_commons','resume_formatted','auteur','licence',
-                        'id_osm','latitude','longitude','lien_node_osm_detail','lien_image_principale_detail','lien_commons')
+                        'id_osm','latitude','longitude','lien_node_osm_detail','lien_image_principale_detail','lien_commons',
+                        'original')
     
     # Affichage des personnalités liées
     inlines = [
@@ -528,6 +539,15 @@ class MonumentAdmin(admin.ModelAdmin):
             return u''
     
     lien_commons.allow_tags = True
+    
+    def original(self,obj):
+        """ Affiche l'url de l'image originale """
+        if obj.image_principale and obj.image_principale.url_original:
+            return u'<a href="%s">%s</a>' % (obj.image_principale.url_original,obj.image_principale.url_original)
+        else:
+            return u''
+    
+    original.allow_tags = True
     
     def queryset(self, request):
         """ Surcharge permettant le tri de la liste
