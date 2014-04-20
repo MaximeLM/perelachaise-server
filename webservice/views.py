@@ -33,6 +33,16 @@ def prepare_json_nodeOSM_for_monument_all(node_osm):
         }
     return result
 
+def prepare_json_imageCommons_for_monument_all(image_commons):
+    """ Renvoie un dictionnaire pour dump json correspondant à l'objet indiqué """
+    result = {
+            'id': to_json_string(image_commons.pk),
+            'nom': to_json_string(image_commons.nom),
+            'auteur': to_json_string(image_commons.auteur),
+            'licence': to_json_string(image_commons.licence),
+        }
+    return result
+
 def prepare_json_personnalite_for_monument_all(personnalite):
     """ Renvoie un dictionnaire pour dump json correspondant à l'objet indiqué """
     result = {
@@ -62,6 +72,10 @@ def prepare_json_monument_for_monument_all(monument):
     # Node OSM
     node_osm = monument.node_osm
     result['node_osm'] = prepare_json_nodeOSM_for_monument_all(node_osm)
+    
+    # Image principale
+    if monument.image_principale:
+        result['image_principale'] = prepare_json_imageCommons_for_monument_all(monument.image_principale)
     
     # Personnalites
     personnalites_result = []
