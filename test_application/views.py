@@ -7,7 +7,7 @@ from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFou
 from django.views.decorators.http import require_http_methods
 from django.core import serializers
 
-from perelachaise.models import Monument, Personnalite, NodeOSM
+from perelachaise.models import Monument, Personnalite, NodeOSM, ImageCommons
 from webservice.views import dump_json, prepare_json_nodeOSM_for_monument_all, prepare_json_personnalite_for_monument_all, prepare_json_monument_for_monument_all
 
 @require_http_methods(["GET"])
@@ -248,20 +248,27 @@ def fixtures_test_webservice(request):
     """
     # Récupération des monuments voulus
     monuments = [
-        Monument.objects.get(pk=120),   # Jim Morrison
-        Monument.objects.get(pk=193),   # Abélard & Héloïse
-        Monument.objects.get(pk=227),   # Famille d'Aboville
-        Monument.objects.get(pk=194),   # Téo Hernandez
-        Monument.objects.get(pk=228),   # François d'Astier de La Vigerie
+        Monument.objects.get(pk=9),     # Alphonse Daudet
+        Monument.objects.get(pk=76),    # Georges Courteline
         Monument.objects.get(pk=99),    # Isadora Duncan
-        Monument.objects.get(pk=9)      # Alphonse Daudet
+        Monument.objects.get(pk=120),   # Jim Morrison
+        Monument.objects.get(pk=164),   # Mur des Fédérés
+        Monument.objects.get(pk=193),   # Abélard & Héloïse
+        Monument.objects.get(pk=194),   # Téo Hernandez
+        Monument.objects.get(pk=205),   # Alain Bashung
+        Monument.objects.get(pk=218),   # Édith Piaf
+        Monument.objects.get(pk=227),   # Famille d'Aboville
+        Monument.objects.get(pk=228),   # François d'Astier de La Vigerie
+        Monument.objects.get(pk=241),   # Jean de La Fontaine
     ]
     
-    # Récupération des nodes OSM et personnalités associés
+    # Récupération des nodes OSM, personnalités et images Commons associés
     nodesOSM = []
     personnalites = []
+    images_commons = []
     for monument in monuments:
         nodesOSM.append(monument.node_osm)
+        images_commons.append(monument.image_principale)
         for personnalite in monument.personnalite_set.all():
             personnalites.append(personnalite)
     
@@ -269,4 +276,5 @@ def fixtures_test_webservice(request):
     result = monuments
     result.extend(nodesOSM)
     result.extend(personnalites)
+    result.extend(images_commons)
     return HttpResponse(serializers.serialize("json", result), mimetype='application/json; charset=utf-8')

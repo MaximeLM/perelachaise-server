@@ -8,8 +8,8 @@ from decimal import Decimal
 from django.test import TestCase
 from django.test.client import Client
 
-from perelachaise.models import NodeOSM, Monument, Personnalite
-from webservice.views import to_json_string, prepare_json_nodeOSM_for_monument_all, prepare_json_personnalite_for_monument_all, prepare_json_monument_for_monument_all
+from perelachaise.models import NodeOSM, Monument, Personnalite, ImageCommons
+from webservice.views import to_json_string, prepare_json_nodeOSM_for_monument_all, prepare_json_personnalite_for_monument_all, prepare_json_monument_for_monument_all, prepare_json_imageCommons_for_monument_all
 
 class MonumentAllTest(TestCase):
     """
@@ -90,7 +90,30 @@ class MonumentAllTest(TestCase):
         self.assertTrue(node_osm_json.has_key('longitude'))
         self.assertEqual(node_osm_ref.longitude, Decimal(node_osm_json['longitude']))
         
-        # Vérification des champs du node OSM
+        if monument_ref.image_principale:
+            # Vérification des champs de l'image principale
+            self.assertTrue(monument_json.has_key('image_principale'))
+            image_commons_json = monument_json['image_principale']
+            image_commons_ref = monument_ref.image_principale
+            self.assertTrue(isinstance(image_commons_json, dict))
+        
+            # Nom image Commons
+            self.assertTrue(image_commons_json.has_key('nom'))
+            self.assertEqual(image_commons_ref.nom, image_commons_json['nom'])
+            
+            # Auteur image Commons
+            self.assertTrue(image_commons_json.has_key('auteur'))
+            self.assertEqual(image_commons_ref.auteur, image_commons_json['auteur'])
+            
+            # Licence image Commons
+            self.assertTrue(image_commons_json.has_key('licence'))
+            self.assertEqual(image_commons_ref.licence, image_commons_json['licence'])
+            
+            # URL originale image Commons
+            self.assertTrue(image_commons_json.has_key('url_original'))
+            self.assertEqual(image_commons_ref.url_original, image_commons_json['url_original'])
+        
+        # Vérification des champs des personnalités
         self.assertTrue(monument_json.has_key('personnalites'))
         personnalites_json = monument_json['personnalites']
         
@@ -347,6 +370,13 @@ class MonumentAllTest(TestCase):
         monument_ref.code_wikipedia = ''
         monument_ref.resume = ''
         
+        image_commons_ref = monument_ref.image_principale
+        image_commons_ref.auteur = ''
+        image_commons_ref.licence = ''
+        image_commons_ref.url_originale = ''
+        
+        image_commons_ref.save()
+        
         for personnalite_ref in monument_ref.personnalite_set.all():
             personnalite_ref.code_wikipedia = ''
             personnalite_ref.activite = ''
@@ -400,6 +430,45 @@ class MonumentAllTest(TestCase):
             personnalite_ref.date_deces = datetime.date(1745,10,15)
             
             personnalite_ref.save()
+        
+        # Requête avec GET
+        response = self.client.get('/webservice/monument/all/')
+        
+        # Vérification du statut HTTP
+        self.assertEqual(200, response.status_code)
+        
+        # Vérification du type de contenu
+        self.assertEqual('application/json; charset=utf-8', response['Content-Type'])
+        
+        # Parcours des objets reçus
+        jsonObject = json.loads(response.content)
+        self.assertTrue(isinstance(jsonObject, dict))
+        
+        # Vérification de la présence de la liste de monuments
+        self.assertTrue(jsonObject.has_key('monuments'))
+        monuments = jsonObject['monuments'];
+        self.assertTrue(isinstance(monuments, list))
+        
+        # Récupération du dictionnaire des monuments
+        dict_monuments = self.util_list_to_dict_result(monuments)
+        
+        # Vérification de la présence du monument de référence
+        self.assertTrue(dict_monuments.has_key(monument_ref.nom))
+        monument_json = dict_monuments[monument_ref.nom]
+        
+        # Vérification du contenu du monument
+        self.assert_monument_equal(monument_json, monument_ref)
+    
+    def test_no_image_principale(self):
+        """
+        Teste un monument qui n'a pas d'image Commons associée.
+        """
+        
+        monument_ref = Monument.objects.get(nom = u'Jim Morrison')
+        
+        # Suppression de l'image principale
+        monument_ref.image_principale = None
+        monument_ref.save()
         
         # Requête avec GET
         response = self.client.get('/webservice/monument/all/')
@@ -596,3 +665,32 @@ class MonumentAllTest(TestCase):
         monument_json['personnalites'] = personnalites
         
         self.assert_monument_equal(monument_json, monument)
+    
+    def test_prepare_json_image_commons_for_monument_all_full(self):
+        """
+        Préparation json d'une image Commons où tous les champs sont remplis
+        """
+        image_commons = ImageCommons.objects.get(pk=129)
+        image_commons_json = prepare_json_imageCommons_for_monument_all(image_commons)
+        
+        self.assertEqual(image_commons.nom, image_commons_json['nom'])
+        self.assertEqual(image_commons.auteur, image_commons_json['auteur'])
+        self.assertEqual(image_commons.licence, image_commons_json['licence'])
+        self.assertEqual(image_commons.url_original, image_commons_json['url_original'])
+    
+    def test_prepare_json_image_commons_for_monument_all_empty(self):
+        """
+        Préparation json d'une image Commons où tous les champs optionnels sont vides
+        """
+        image_commons = ImageCommons.objects.get(pk=129)
+        
+        image_commons.auteur = ''
+        image_commons.licence = ''
+        image_commons.url_original = ''
+        
+        image_commons_json = prepare_json_imageCommons_for_monument_all(image_commons)
+        
+        self.assertEqual(image_commons.nom, image_commons_json['nom'])
+        self.assertEqual('', image_commons_json['auteur'])
+        self.assertEqual('', image_commons_json['licence'])
+        self.assertEqual('', image_commons_json['url_original'])
