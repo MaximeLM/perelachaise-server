@@ -112,6 +112,10 @@ class MonumentAllTest(TestCase):
             # URL originale image Commons
             self.assertTrue(image_commons_json.has_key('url_original'))
             self.assertEqual(image_commons_ref.url_original, image_commons_json['url_original'])
+        else:
+            # Vérification de la clé null dans le résultat
+            self.assertTrue(monument_json.has_key('image_principale'))
+            self.assertIsNone(monument_json['image_principale'])
         
         # Vérification des champs des personnalités
         self.assertTrue(monument_json.has_key('personnalites'))
@@ -369,13 +373,6 @@ class MonumentAllTest(TestCase):
         # Mise à vide ou None des champs quand possible
         monument_ref.code_wikipedia = ''
         monument_ref.resume = ''
-        
-        image_commons_ref = monument_ref.image_principale
-        image_commons_ref.auteur = ''
-        image_commons_ref.licence = ''
-        image_commons_ref.url_originale = ''
-        
-        image_commons_ref.save()
         
         for personnalite_ref in monument_ref.personnalite_set.all():
             personnalite_ref.code_wikipedia = ''
@@ -666,9 +663,32 @@ class MonumentAllTest(TestCase):
         
         self.assert_monument_equal(monument_json, monument)
     
-    def test_prepare_json_image_commons_for_monument_all_full(self):
+    def test_prepare_json_monument_for_monument_all_no_image_principale(self):
         """
-        Préparation json d'une image Commons où tous les champs sont remplis
+        Préparation json d'un monument sans image principale
+        """
+        monument = Monument.objects.get(nom = u'Famille d\'Aboville')
+        
+        monument.image_principale = None
+        
+        monument_json = prepare_json_monument_for_monument_all(monument)
+        
+        # Parcours des personnalités
+        personnalites = {}
+        for personnalite in monument_json['personnalites']:
+            # Récupération du nom
+            nom_personnalite = personnalite['nom']
+            
+            # Ajout au dictionnaire
+            personnalites[nom_personnalite] = personnalite
+        
+        monument_json['personnalites'] = personnalites
+        
+        self.assert_monument_equal(monument_json, monument)
+    
+    def test_prepare_json_image_commons_for_monument_all(self):
+        """
+        Préparation json d'une image Commons
         """
         image_commons = ImageCommons.objects.get(pk=129)
         image_commons_json = prepare_json_imageCommons_for_monument_all(image_commons)
@@ -677,20 +697,3 @@ class MonumentAllTest(TestCase):
         self.assertEqual(image_commons.auteur, image_commons_json['auteur'])
         self.assertEqual(image_commons.licence, image_commons_json['licence'])
         self.assertEqual(image_commons.url_original, image_commons_json['url_original'])
-    
-    def test_prepare_json_image_commons_for_monument_all_empty(self):
-        """
-        Préparation json d'une image Commons où tous les champs optionnels sont vides
-        """
-        image_commons = ImageCommons.objects.get(pk=129)
-        
-        image_commons.auteur = ''
-        image_commons.licence = ''
-        image_commons.url_original = ''
-        
-        image_commons_json = prepare_json_imageCommons_for_monument_all(image_commons)
-        
-        self.assertEqual(image_commons.nom, image_commons_json['nom'])
-        self.assertEqual('', image_commons_json['auteur'])
-        self.assertEqual('', image_commons_json['licence'])
-        self.assertEqual('', image_commons_json['url_original'])

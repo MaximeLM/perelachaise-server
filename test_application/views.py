@@ -110,6 +110,9 @@ def fixtures_monumentall_monument(request, name):
         monument.node_osm.latitude = Decimal('42.4')
         monument.node_osm.longitude = Decimal('-42.4')
         
+        # Suppression de l'image principale
+        monument.image_principale = None
+        
         # Construction du résultat
         result = prepare_json_monument_for_monument_all(monument)
         
@@ -120,6 +123,9 @@ def fixtures_monumentall_monument(request, name):
     elif name == 'monument2':
         monument = monument2
         
+        # Suppression de l'image principale
+        monument.image_principale = None
+        
         # Construction du résultat
         result = prepare_json_monument_for_monument_all(monument)
         
@@ -128,6 +134,12 @@ def fixtures_monumentall_monument(request, name):
         
     elif name == 'monument2_update1':
         monument = monument2
+        
+        # Modification de l'image principale
+        monument.image_principale.nom = 'test_nom'
+        monument.image_principale.auteur = 'test_auteur'
+        monument.image_principale.licence = 'test_licence'
+        monument.image_principale.url_original = 'test_url_original'
         
         # Construction du résultat
         result = prepare_json_monument_for_monument_all(monument)
@@ -138,6 +150,9 @@ def fixtures_monumentall_monument(request, name):
         
     elif name == 'monument2_update2':
         monument = monument2
+        
+        # Remplacement de l'image principale
+        monument.image_principale = monument3.image_principale
         
         # Construction du résultat
         result = prepare_json_monument_for_monument_all(monument)
@@ -250,6 +265,7 @@ def fixtures_test_webservice(request):
     monuments = [
         Monument.objects.get(pk=9),     # Alphonse Daudet
         Monument.objects.get(pk=76),    # Georges Courteline
+        Monument.objects.get(pk=92),    # Henri Barbusse
         Monument.objects.get(pk=99),    # Isadora Duncan
         Monument.objects.get(pk=120),   # Jim Morrison
         Monument.objects.get(pk=164),   # Mur des Fédérés

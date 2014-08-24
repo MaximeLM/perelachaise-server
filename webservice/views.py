@@ -77,6 +77,8 @@ def prepare_json_monument_for_monument_all(monument):
     # Image principale
     if monument.image_principale:
         result['image_principale'] = prepare_json_imageCommons_for_monument_all(monument.image_principale)
+    else:
+        result['image_principale'] = None
     
     # Personnalites
     personnalites_result = []

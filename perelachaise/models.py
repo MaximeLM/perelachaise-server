@@ -48,13 +48,13 @@ class ImageCommons(models.Model):
     nom = models.CharField(max_length=255,unique=True)
     
     # Auteur
-    auteur = models.CharField(max_length=255,blank=True)
+    auteur = models.CharField(max_length=255)
     
     # Licence
-    licence = models.CharField(max_length=255,blank=True)
+    licence = models.CharField(max_length=255)
     
     # URL de l'image originale
-    url_original = models.CharField(max_length=255,blank=True)
+    url_original = models.CharField(max_length=255)
     
     def __unicode__(self):
         return self.nom
