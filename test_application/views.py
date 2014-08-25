@@ -8,7 +8,7 @@ from django.views.decorators.http import require_http_methods
 from django.core import serializers
 
 from perelachaise.models import Monument, Personnalite, NodeOSM, ImageCommons
-from webservice.views import dump_json, prepare_json_nodeOSM_for_monument_all, prepare_json_personnalite_for_monument_all, prepare_json_monument_for_monument_all
+from webservice.views import dump_json, prepare_json_nodeOSM_for_monument_all, prepare_json_personnalite_for_monument_all, prepare_json_monument_for_monument_all, prepare_json_imageCommons_for_monument_all
 
 @require_http_methods(["GET"])
 def fixtures_monumentall_nodeOSM(request, name):
@@ -71,6 +71,40 @@ def fixtures_monumentall_personnalite(request, name):
         
     # Construction du résultat
     result = prepare_json_personnalite_for_monument_all(personnalite)
+    
+    return HttpResponse(dump_json(result), mimetype='application/json; charset=utf-8')
+
+@require_http_methods(["GET"])
+def fixtures_monumentall_imageCommons(request, name):
+    """
+    Renvoie la fixture d'Image Commons pour la vue monument/all/ correspondant au nom indiqué
+    """
+    
+    if name == 'imageCommons1':
+        # Alphonse Daudet
+        imageCommons = ImageCommons.objects.get(pk=61)
+    elif name == 'imageCommons1_update':
+        # Alphonse Daudet modifié
+        imageCommons = ImageCommons.objects.get(pk=61)
+        imageCommons.nom = u'nom1'
+        imageCommons.auteur = u'auteur1'
+        imageCommons.licence = u'licence1'
+        imageCommons.url_original = u'url_original1'
+    elif name == 'imageCommons2':
+        # Jim Morrison
+        imageCommons = ImageCommons.objects.get(pk=129)
+    elif name == 'imageCommons2_update':
+        # Jim Morrison modifié
+        imageCommons = ImageCommons.objects.get(pk=129)
+        imageCommons.nom = u'nom2'
+        imageCommons.auteur = u'auteur2'
+        imageCommons.licence = u'licence2'
+        imageCommons.url_original = u'url_original2'
+    else:
+        return HttpResponseBadRequest()
+    
+    # Construction du résultat
+    result = prepare_json_imageCommons_for_monument_all(imageCommons)
     
     return HttpResponse(dump_json(result), mimetype='application/json; charset=utf-8')
 
