@@ -183,3 +183,41 @@ class Personnalite(models.Model):
     class Meta:
         # Nom verbeux
         verbose_name = u'Personnalité'
+
+class JourEvenement(models.Model):
+    """
+    Représente un évènement (naissance, décès, etc) ayant eu lieu un jour précis.
+    """
+    
+    # Constantes
+    NAISSANCE = u'Naissance'
+    DECES = u'Décès'
+    
+    DESCRIPTION_CHOICES = (
+            (NAISSANCE, u'Naissance'),
+            (DECES, u'Décès'),
+        )
+    
+    # Jour de l'évènement
+    jour = models.DateField()
+    
+    # Personnalité liée à l'évènement
+    personnalite = models.ForeignKey('Personnalite')
+    
+    # Description de l'évènement, par exemple "Naissance"
+    description = models.CharField(max_length=255,default=NAISSANCE,choices=DESCRIPTION_CHOICES)
+    
+    # Lien wikipedia
+    lien_wikipedia = models.CharField(max_length=255)
+    
+    # Lien wikimedia commons personnalite
+    lien_commons_personnalite = models.CharField(max_length=255)
+    
+    # Lien wikimedia commons monument
+    lien_commons_monument = models.CharField(max_length=255)
+    
+    def __unicode__(self):
+        return (u'%s : %s %s' % (self.jour, self.description, self.personnalite.nom))
+    
+    class Meta:
+        unique_together = ('personnalite', 'description',)
