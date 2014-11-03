@@ -3,8 +3,9 @@
 
 import json
 import time, datetime
-from decimal import Decimal
+import urllib2
 
+from decimal import Decimal
 from django.test import TestCase
 from django.test.client import Client
 
@@ -46,7 +47,7 @@ class MonumentAllTest(TestCase):
         
         return result
     
-    def assert_monument_equal(self, monument_json, monument_ref):
+    def assert_monument_equal(self, monument_json, monument_ref, extra):
         """ Vérifie qu'un monument obtenu par requête est égal à un monument en base """
         
         # Vérification des champs du monument
@@ -72,6 +73,32 @@ class MonumentAllTest(TestCase):
         self.assertTrue(monument_json.has_key('resume'))
         self.assertEqual(monument_ref.resume, monument_json['resume'])
         
+        if extra:
+            # Lien Wikipedia
+            self.assertTrue(monument_json.has_key('lien_wikipedia'))
+            if monument_ref.code_wikipedia != '':
+                self.assertEqual('http://fr.wikipedia.org/wiki/%s' % urllib2.quote(monument_ref.code_wikipedia.encode('utf8')), monument_json['lien_wikipedia'])
+            else:
+                self.assertEqual('', monument_json['lien_wikipedia'])
+        
+            # Lien Wikidata
+            self.assertTrue(monument_json.has_key('lien_wikidata'))
+            if monument_ref.code_wikidata != '':
+                self.assertEqual('http://www.wikidata.org/wiki/%s?uselang=fr' % urllib2.quote(monument_ref.code_wikidata.encode('utf8')), monument_json['lien_wikidata'])
+            else:
+                self.assertEqual('', monument_json['lien_wikidata'])
+        
+            # Lien catégorie Wikimedia Commons
+            self.assertTrue(monument_json.has_key('lien_categorie_wikimedia_commons'))
+            if monument_ref.categorie_commons != '':
+                self.assertEqual('http://commons.wikimedia.org/wiki/Category:%s' % urllib2.quote(monument_ref.categorie_commons.encode('utf8')), monument_json['lien_categorie_wikimedia_commons'])
+            else:
+                self.assertEqual('', monument_json['lien_categorie_wikimedia_commons'])
+        else:
+            self.assertFalse(monument_json.has_key('lien_wikipedia'))
+            self.assertFalse(monument_json.has_key('lien_wikidata'))
+            self.assertFalse(monument_json.has_key('lien_categorie_wikimedia_commons'))
+        
         # Vérification des champs du node OSM
         self.assertTrue(monument_json.has_key('node_osm'))
         node_osm_json = monument_json['node_osm']
@@ -89,6 +116,13 @@ class MonumentAllTest(TestCase):
         # Longitude node OSM
         self.assertTrue(node_osm_json.has_key('longitude'))
         self.assertEqual(node_osm_ref.longitude, Decimal(node_osm_json['longitude']))
+        
+        if extra:
+            # Lien OpenStreetMap
+            self.assertTrue(node_osm_json.has_key('lien_openstreetmap'))
+            self.assertEqual('http://www.openstreetmap.org/node/%s' % node_osm_ref.id, node_osm_json['lien_openstreetmap'])
+        else:
+            self.assertFalse(node_osm_json.has_key('lien_openstreetmap'))
         
         if monument_ref.image_principale:
             # Vérification des champs de l'image principale
@@ -112,6 +146,13 @@ class MonumentAllTest(TestCase):
             # URL originale image Commons
             self.assertTrue(image_commons_json.has_key('url_original'))
             self.assertEqual(image_commons_ref.url_original, image_commons_json['url_original'])
+            
+            if extra:
+                # Lien Wikimedia Commons
+                self.assertTrue(image_commons_json.has_key('lien_wikimedia_commons'))
+                self.assertEqual('http://commons.wikimedia.org/wiki/File:%s' % urllib2.quote(image_commons_ref.nom.encode('utf8')), image_commons_json['lien_wikimedia_commons'])
+            else:
+                self.assertFalse(image_commons_json.has_key('lien_wikimedia_commons'))
         else:
             # Vérification de la clé null dans le résultat
             self.assertTrue(monument_json.has_key('image_principale'))
@@ -174,6 +215,32 @@ class MonumentAllTest(TestCase):
             # Précision date de décès personnalité
             self.assertTrue(personnalite_json.has_key('date_deces_precision'))
             self.assertEqual(personnalite_ref.date_deces_precision, personnalite_json['date_deces_precision'])
+            
+            if extra:
+                # Lien Wikipedia
+                self.assertTrue(personnalite_json.has_key('lien_wikipedia'))
+                if personnalite_ref.code_wikipedia != '':
+                    self.assertEqual('http://fr.wikipedia.org/wiki/%s' % urllib2.quote(personnalite_ref.code_wikipedia.encode('utf8')), personnalite_json['lien_wikipedia'])
+                else:
+                    self.assertEqual('', personnalite_json['lien_wikipedia'])
+                
+                # Lien Wikidata
+                self.assertTrue(personnalite_json.has_key('lien_wikidata'))
+                if personnalite_ref.code_wikidata != '':
+                    self.assertEqual('http://www.wikidata.org/wiki/%s?uselang=fr' % urllib2.quote(personnalite_ref.code_wikidata.encode('utf8')), personnalite_json['lien_wikidata'])
+                else:
+                    self.assertEqual('', personnalite_json['lien_wikidata'])
+                
+                # Lien catégorie Wikimedia Commons
+                self.assertTrue(personnalite_json.has_key('lien_categorie_wikimedia_commons'))
+                if personnalite_ref.categorie_commons != '':
+                    self.assertEqual('http://commons.wikimedia.org/wiki/Category:%s' % urllib2.quote(personnalite_ref.categorie_commons.encode('utf8')), personnalite_json['lien_categorie_wikimedia_commons'])
+                else:
+                    self.assertEqual('', personnalite_json['lien_categorie_wikimedia_commons'])
+            else:
+                self.assertFalse(personnalite_json.has_key('lien_wikipedia'))
+                self.assertFalse(personnalite_json.has_key('lien_wikidata'))
+                self.assertFalse(personnalite_json.has_key('lien_categorie_wikimedia_commons'))
     
     def test_get(self):
 		"""
@@ -289,7 +356,7 @@ class MonumentAllTest(TestCase):
         monument_json = dict_monuments[monument_ref.nom]
         
         # Vérification du contenu du monument
-        self.assert_monument_equal(monument_json, monument_ref)
+        self.assert_monument_equal(monument_json, monument_ref, False)
     
     def test_2_personnalites(self):
         """
@@ -325,7 +392,7 @@ class MonumentAllTest(TestCase):
         monument_json = dict_monuments[monument_ref.nom]
         
         # Vérification du contenu du monument
-        self.assert_monument_equal(monument_json, monument_ref)
+        self.assert_monument_equal(monument_json, monument_ref, False)
     
     def test_3_personnalites(self):
         """
@@ -361,7 +428,7 @@ class MonumentAllTest(TestCase):
         monument_json = dict_monuments[monument_ref.nom]
         
         # Vérification du contenu du monument
-        self.assert_monument_equal(monument_json, monument_ref)
+        self.assert_monument_equal(monument_json, monument_ref, False)
     
     def test_champs_vides(self):
         """
@@ -411,7 +478,7 @@ class MonumentAllTest(TestCase):
         monument_json = dict_monuments[monument_ref.nom]
         
         # Vérification du contenu du monument
-        self.assert_monument_equal(monument_json, monument_ref)
+        self.assert_monument_equal(monument_json, monument_ref, False)
     
     def test_avant_1900(self):
         """
@@ -454,7 +521,7 @@ class MonumentAllTest(TestCase):
         monument_json = dict_monuments[monument_ref.nom]
         
         # Vérification du contenu du monument
-        self.assert_monument_equal(monument_json, monument_ref)
+        self.assert_monument_equal(monument_json, monument_ref, False)
     
     def test_no_image_principale(self):
         """
@@ -493,7 +560,7 @@ class MonumentAllTest(TestCase):
         monument_json = dict_monuments[monument_ref.nom]
         
         # Vérification du contenu du monument
-        self.assert_monument_equal(monument_json, monument_ref)
+        self.assert_monument_equal(monument_json, monument_ref, False)
     
     def test_non_controle(self):
         """
@@ -598,18 +665,30 @@ class MonumentAllTest(TestCase):
         Préparation json d'un node OSM
         """
         nodeOSM = NodeOSM.objects.get(pk=2663325709)
-        nodeOSM_json = prepare_json_nodeOSM_for_monument_all(nodeOSM)
+        nodeOSM_json = prepare_json_nodeOSM_for_monument_all(nodeOSM, False)
         
         self.assertEqual(nodeOSM.id, nodeOSM_json['id'])
         self.assertEqual(nodeOSM.latitude, Decimal(nodeOSM_json['latitude']))
         self.assertEqual(nodeOSM.longitude, Decimal(nodeOSM_json['longitude']))
+    
+    def test_prepare_json_nodeOSM_for_monument_all_extra(self):
+        """
+        Préparation json d'un node OSM avec les champs extra
+        """
+        nodeOSM = NodeOSM.objects.get(pk=2663325709)
+        nodeOSM_json = prepare_json_nodeOSM_for_monument_all(nodeOSM, True)
+        
+        self.assertEqual(nodeOSM.id, nodeOSM_json['id'])
+        self.assertEqual(nodeOSM.latitude, Decimal(nodeOSM_json['latitude']))
+        self.assertEqual(nodeOSM.longitude, Decimal(nodeOSM_json['longitude']))
+        self.assertEqual(u'http://www.openstreetmap.org/node/%s' % nodeOSM.id, nodeOSM_json['lien_openstreetmap'])
     
     def test_prepare_json_personnalite_for_monument_all_full(self):
         """
         Préparation json d'une personnalité (cas où tous les champs sont remplis)
         """
         personnalite = Personnalite.objects.get(pk=120)
-        personnalite_json = prepare_json_personnalite_for_monument_all(personnalite)
+        personnalite_json = prepare_json_personnalite_for_monument_all(personnalite, False)
         
         self.assertEqual(personnalite.id, personnalite_json['id'])
         self.assertEqual(personnalite.nom, personnalite_json['nom'])
@@ -631,7 +710,7 @@ class MonumentAllTest(TestCase):
         personnalite.resume = ''
         personnalite.date_naissance = ''
         personnalite.date_deces = ''
-        personnalite_json = prepare_json_personnalite_for_monument_all(personnalite)
+        personnalite_json = prepare_json_personnalite_for_monument_all(personnalite, False)
         
         self.assertEqual(personnalite.id, personnalite_json['id'])
         self.assertEqual(personnalite.nom, personnalite_json['nom'])
@@ -643,12 +722,58 @@ class MonumentAllTest(TestCase):
         self.assertEqual(personnalite.date_naissance_precision, personnalite_json['date_naissance_precision'])
         self.assertEqual(personnalite.date_deces_precision, personnalite_json['date_deces_precision'])
     
+    def test_prepare_json_personnalite_for_monument_all_extra_full(self):
+        """
+        Préparation json d'une personnalité avec les champs extras (cas où tous les liens sont présents)
+        """
+        personnalite = Personnalite.objects.get(pk=120)
+        personnalite_json = prepare_json_personnalite_for_monument_all(personnalite, True)
+        
+        self.assertEqual(personnalite.id, personnalite_json['id'])
+        self.assertEqual(personnalite.nom, personnalite_json['nom'])
+        self.assertEqual(personnalite.code_wikipedia, personnalite_json['code_wikipedia'])
+        self.assertEqual(personnalite.activite, personnalite_json['activite'])
+        self.assertEqual(personnalite.resume, personnalite_json['resume'])
+        self.assertEqual(personnalite.date_naissance, datetime.date(*time.strptime(personnalite_json['date_naissance'], "%Y-%m-%d")[:3]))
+        self.assertEqual(personnalite.date_deces, datetime.date(*time.strptime(personnalite_json['date_deces'], "%Y-%m-%d")[:3]))
+        self.assertEqual(personnalite.date_naissance_precision, personnalite_json['date_naissance_precision'])
+        self.assertEqual(personnalite.date_deces_precision, personnalite_json['date_deces_precision'])
+        self.assertEqual('http://fr.wikipedia.org/wiki/%s' % urllib2.quote(personnalite.code_wikipedia.encode('utf8')), personnalite_json['lien_wikipedia'])
+        self.assertEqual('http://www.wikidata.org/wiki/%s?uselang=fr' % urllib2.quote(personnalite.code_wikidata.encode('utf8')), personnalite_json['lien_wikidata'])
+        self.assertEqual('http://commons.wikimedia.org/wiki/Category:%s' % urllib2.quote(personnalite.categorie_commons.encode('utf8')), personnalite_json['lien_categorie_wikimedia_commons'])
+    
+    def test_prepare_json_personnalite_for_monument_all_extra_empty(self):
+        """
+        Préparation json d'une personnalité avec les champs extras (cas où tous les liens sont absents)
+        """
+        personnalite = Personnalite.objects.get(pk=120)
+        
+        # Suppression des liens
+        personnalite.code_wikipedia = ''
+        personnalite.code_wikidata = ''
+        personnalite.categorie_commons = ''
+        
+        personnalite_json = prepare_json_personnalite_for_monument_all(personnalite, True)
+        
+        self.assertEqual(personnalite.id, personnalite_json['id'])
+        self.assertEqual(personnalite.nom, personnalite_json['nom'])
+        self.assertEqual(personnalite.code_wikipedia, personnalite_json['code_wikipedia'])
+        self.assertEqual(personnalite.activite, personnalite_json['activite'])
+        self.assertEqual(personnalite.resume, personnalite_json['resume'])
+        self.assertEqual(personnalite.date_naissance, datetime.date(*time.strptime(personnalite_json['date_naissance'], "%Y-%m-%d")[:3]))
+        self.assertEqual(personnalite.date_deces, datetime.date(*time.strptime(personnalite_json['date_deces'], "%Y-%m-%d")[:3]))
+        self.assertEqual(personnalite.date_naissance_precision, personnalite_json['date_naissance_precision'])
+        self.assertEqual(personnalite.date_deces_precision, personnalite_json['date_deces_precision'])
+        self.assertEqual('', personnalite_json['lien_wikipedia'])
+        self.assertEqual('', personnalite_json['lien_wikidata'])
+        self.assertEqual('', personnalite_json['lien_categorie_wikimedia_commons'])
+    
     def test_prepare_json_monument_for_monument_all(self):
         """
         Préparation json d'un monument
         """
         monument = Monument.objects.get(nom = u'Famille d\'Aboville')
-        monument_json = prepare_json_monument_for_monument_all(monument)
+        monument_json = prepare_json_monument_for_monument_all(monument, False)
         
         # Parcours des personnalités
         personnalites = {}
@@ -661,7 +786,7 @@ class MonumentAllTest(TestCase):
         
         monument_json['personnalites'] = personnalites
         
-        self.assert_monument_equal(monument_json, monument)
+        self.assert_monument_equal(monument_json, monument, False)
     
     def test_prepare_json_monument_for_monument_all_no_image_principale(self):
         """
@@ -671,7 +796,7 @@ class MonumentAllTest(TestCase):
         
         monument.image_principale = None
         
-        monument_json = prepare_json_monument_for_monument_all(monument)
+        monument_json = prepare_json_monument_for_monument_all(monument, False)
         
         # Parcours des personnalités
         personnalites = {}
@@ -684,16 +809,193 @@ class MonumentAllTest(TestCase):
         
         monument_json['personnalites'] = personnalites
         
-        self.assert_monument_equal(monument_json, monument)
+        self.assert_monument_equal(monument_json, monument, False)
+    
+    def test_prepare_json_monument_for_monument_all_extra(self):
+        """
+        Préparation json d'un monument avec les champs extra
+        """
+        monument = Monument.objects.get(nom = u'Famille d\'Aboville')
+        monument_json = prepare_json_monument_for_monument_all(monument, True)
+        
+        # Parcours des personnalités
+        personnalites = {}
+        for personnalite in monument_json['personnalites']:
+            # Récupération du nom
+            nom_personnalite = personnalite['nom']
+            
+            # Ajout au dictionnaire
+            personnalites[nom_personnalite] = personnalite
+        
+        monument_json['personnalites'] = personnalites
+        
+        self.assert_monument_equal(monument_json, monument, True)
     
     def test_prepare_json_image_commons_for_monument_all(self):
         """
         Préparation json d'une image Commons
         """
         image_commons = ImageCommons.objects.get(pk=129)
-        image_commons_json = prepare_json_imageCommons_for_monument_all(image_commons)
+        image_commons_json = prepare_json_imageCommons_for_monument_all(image_commons, False)
         
         self.assertEqual(image_commons.nom, image_commons_json['nom'])
         self.assertEqual(image_commons.auteur, image_commons_json['auteur'])
         self.assertEqual(image_commons.licence, image_commons_json['licence'])
         self.assertEqual(image_commons.url_original, image_commons_json['url_original'])
+    
+    def test_prepare_json_image_commons_for_monument_all_extra(self):
+        """
+        Préparation json d'une image Commons avec les champs extra
+        """
+        image_commons = ImageCommons.objects.get(pk=129)
+        image_commons_json = prepare_json_imageCommons_for_monument_all(image_commons, True)
+        
+        self.assertEqual(image_commons.nom, image_commons_json['nom'])
+        self.assertEqual(image_commons.auteur, image_commons_json['auteur'])
+        self.assertEqual(image_commons.licence, image_commons_json['licence'])
+        self.assertEqual(image_commons.url_original, image_commons_json['url_original'])
+        self.assertEqual('http://commons.wikimedia.org/wiki/File:%s' % urllib2.quote(image_commons.nom.encode('utf8')), image_commons_json['lien_wikimedia_commons'])
+    
+    def test_extra_none(self):
+        """
+        Teste une requête lorsque la paramètre extra n'est pas indiqué
+        """
+        
+        monument_ref = Monument.objects.get(nom = u'Jim Morrison')
+        self.assertEqual(1, monument_ref.personnalite_set.count())
+        
+        # Requête avec GET
+        response = self.client.get('/webservice/monument/all/')
+        
+        # Vérification du statut HTTP
+        self.assertEqual(200, response.status_code)
+        
+        # Vérification du type de contenu
+        self.assertEqual('application/json; charset=utf-8', response['Content-Type'])
+        
+        # Parcours des objets reçus
+        jsonObject = json.loads(response.content)
+        self.assertTrue(isinstance(jsonObject, dict))
+        
+        # Vérification de la présence de la liste de monuments
+        self.assertTrue(jsonObject.has_key('monuments'))
+        monuments = jsonObject['monuments'];
+        self.assertTrue(isinstance(monuments, list))
+        
+        # Récupération du dictionnaire des monuments
+        dict_monuments = self.util_list_to_dict_result(monuments)
+        
+        # Vérification de la présence du monument de référence
+        self.assertTrue(dict_monuments.has_key(monument_ref.nom))
+        monument_json = dict_monuments[monument_ref.nom]
+        
+        # Vérification du contenu du monument
+        self.assert_monument_equal(monument_json, monument_ref, False)
+    
+    def test_extra_0(self):
+        """
+        Teste une requête lorsque la paramètre extra vaut 0
+        """
+        
+        monument_ref = Monument.objects.get(nom = u'Jim Morrison')
+        self.assertEqual(1, monument_ref.personnalite_set.count())
+        
+        # Requête avec GET
+        response = self.client.get('/webservice/monument/all/?extra=0')
+        
+        # Vérification du statut HTTP
+        self.assertEqual(200, response.status_code)
+        
+        # Vérification du type de contenu
+        self.assertEqual('application/json; charset=utf-8', response['Content-Type'])
+        
+        # Parcours des objets reçus
+        jsonObject = json.loads(response.content)
+        self.assertTrue(isinstance(jsonObject, dict))
+        
+        # Vérification de la présence de la liste de monuments
+        self.assertTrue(jsonObject.has_key('monuments'))
+        monuments = jsonObject['monuments'];
+        self.assertTrue(isinstance(monuments, list))
+        
+        # Récupération du dictionnaire des monuments
+        dict_monuments = self.util_list_to_dict_result(monuments)
+        
+        # Vérification de la présence du monument de référence
+        self.assertTrue(dict_monuments.has_key(monument_ref.nom))
+        monument_json = dict_monuments[monument_ref.nom]
+        
+        # Vérification du contenu du monument
+        self.assert_monument_equal(monument_json, monument_ref, False)
+    
+    def test_extra_1(self):
+        """
+        Teste une requête lorsque la paramètre extra vaut 1
+        """
+        
+        monument_ref = Monument.objects.get(nom = u'Jim Morrison')
+        self.assertEqual(1, monument_ref.personnalite_set.count())
+        
+        # Requête avec GET
+        response = self.client.get('/webservice/monument/all/?extra=1')
+        
+        # Vérification du statut HTTP
+        self.assertEqual(200, response.status_code)
+        
+        # Vérification du type de contenu
+        self.assertEqual('application/json; charset=utf-8', response['Content-Type'])
+        
+        # Parcours des objets reçus
+        jsonObject = json.loads(response.content)
+        self.assertTrue(isinstance(jsonObject, dict))
+        
+        # Vérification de la présence de la liste de monuments
+        self.assertTrue(jsonObject.has_key('monuments'))
+        monuments = jsonObject['monuments'];
+        self.assertTrue(isinstance(monuments, list))
+        
+        # Récupération du dictionnaire des monuments
+        dict_monuments = self.util_list_to_dict_result(monuments)
+        
+        # Vérification de la présence du monument de référence
+        self.assertTrue(dict_monuments.has_key(monument_ref.nom))
+        monument_json = dict_monuments[monument_ref.nom]
+        
+        # Vérification du contenu du monument
+        self.assert_monument_equal(monument_json, monument_ref, True)
+    
+    def test_extra_2(self):
+        """
+        Teste une requête lorsque la paramètre extra vaut 2
+        """
+        
+        monument_ref = Monument.objects.get(nom = u'Jim Morrison')
+        self.assertEqual(1, monument_ref.personnalite_set.count())
+        
+        # Requête avec GET
+        response = self.client.get('/webservice/monument/all/?extra=2')
+        
+        # Vérification du statut HTTP
+        self.assertEqual(200, response.status_code)
+        
+        # Vérification du type de contenu
+        self.assertEqual('application/json; charset=utf-8', response['Content-Type'])
+        
+        # Parcours des objets reçus
+        jsonObject = json.loads(response.content)
+        self.assertTrue(isinstance(jsonObject, dict))
+        
+        # Vérification de la présence de la liste de monuments
+        self.assertTrue(jsonObject.has_key('monuments'))
+        monuments = jsonObject['monuments'];
+        self.assertTrue(isinstance(monuments, list))
+        
+        # Récupération du dictionnaire des monuments
+        dict_monuments = self.util_list_to_dict_result(monuments)
+        
+        # Vérification de la présence du monument de référence
+        self.assertTrue(dict_monuments.has_key(monument_ref.nom))
+        monument_json = dict_monuments[monument_ref.nom]
+        
+        # Vérification du contenu du monument
+        self.assert_monument_equal(monument_json, monument_ref, False)
